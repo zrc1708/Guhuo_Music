@@ -1,0 +1,18 @@
+:root {
+    box-sizing: border-box;
+}
+
+*,::before,::after {
+    box-sizing: inherit;
+}
+
+html{
+    font: menu;
+}
+body{
+    font-size: 16px;
+}
+
+html,body,#app{
+    height: 100%;
+}
