@@ -13,14 +13,39 @@
     </div>
     <div class="header-user">
       <img :src="require('./assets/logo.jpg')" alt="">
-      <span>jibei</span>
+      <span class="username">jibei</span>
     </div>
   </header>
   <!-- 内容 -->
   <div class="content-box">
-    <aside class="asidenav">导航</aside>
+    <aside class="asidenav">
+      <ul class="main-nav">
+        <li class="main-active">发现音乐</li>
+        <li>视频</li>
+        <li>私人FM</li>
+      </ul>
+      <ul class="other-nav">
+        <span class="other-nav-title">我的音乐</span>
+        <li class="iconfont icon-B other-active"><span>我的音乐云盘</span></li>
+        <li class="iconfont icon-diantai"><span>我的电台</span></li>
+        <li class="iconfont icon-shoucang"><span>我的收藏</span></li>
+      </ul>
+      <ul class="other-nav">
+        <span class="other-nav-title">创建的歌单</span>
+        <li class="iconfont icon-aixin"><span>我喜欢的音乐</span></li>
+        <li class="iconfont icon-gedan"><span>周杰伦</span></li>
+        <li class="iconfont icon-gedan"><span>许嵩</span></li>
+        <li class="iconfont icon-gedan"><span>老歌</span></li>
+      </ul>
+      <ul class="other-nav">
+        <span class="other-nav-title">收藏的歌单</span>
+        <li class="iconfont icon-gedan"><span>用烂的bgm</span></li>
+        <li class="iconfont icon-gedan"><span>那些竹取飞翔</span></li>
+        <li class="iconfont icon-gedan"><span>辗转攻占网易云的背景音乐背景音乐</span></li>
+      </ul>
+    </aside>
     <div class="content">
-      内容
+      <router-view></router-view>
     </div>
   </div>
 </template>
@@ -42,13 +67,13 @@ export default defineComponent({
   .logo-box{
     width: 200px;
     a{
+      display: block;
       margin-left: 18px;
       height: 26px;
       line-height: 26px;
       background-image: url('./assets/logo.jpg');
-      background-size: 24px 24px;
+      background-size: 26px 26px;
       background-repeat: no-repeat;
-      
       color: white;
       padding-left: 30px;
       text-decoration: none;
@@ -59,6 +84,7 @@ export default defineComponent({
   .header-control{
     display: flex;
     align-items: center;
+    flex: 1;
     .icon-box{
       display: inline-block;
       width: 24px;
@@ -78,7 +104,7 @@ export default defineComponent({
       margin-right: 12px;
     }
     .search-box{
-      font-size: 18px;
+      font-size: 14px;
       color: white;
       padding-left: 15px;
       padding-right: 10px;
@@ -107,7 +133,18 @@ export default defineComponent({
     }
   }
   .header-user{
-
+    display: flex;
+    align-items: center;
+    img{
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .username{
+      color: #f9c6c6;
+      margin-right: 20px;
+    }
   }
   
 }
@@ -118,6 +155,71 @@ export default defineComponent({
   .asidenav{
     width: 200px;
     border-right: 1px solid #e1e1e1;
+    
+    .main-nav{
+      padding:  13px 13px 0 13px;
+      color: #4c4c4c;
+      li{
+        font-size: 15px;
+        width: 168px;
+        height: 36px;
+        line-height: 36px;
+        border-radius: 3px;
+        padding-left: 8px;
+        margin-bottom: 2px;
+        cursor: pointer;
+        &:hover{
+          background-color: #f6f6f7;
+        }
+      }
+      .main-active{
+        font-weight: bold;
+        font-size: 18px;
+        background-color: #f6f6f7;
+      }
+    }
+
+    .other-nav{
+      padding:  0 13px 13px 13px;
+      color: #4c4c4c;
+      .other-nav-title{
+        display: block;
+        padding: 14px 9px 10px 9px;
+        font-size: 13px;
+        color: #999999;
+      }
+      li{
+        display: flex;
+        font-size: 14px;
+        width: 168px;
+        height: 36px;
+        line-height: 36px;
+        border-radius: 3px;
+        padding-left: 8px;
+        margin-bottom: 2px;
+        cursor: pointer;
+        &:hover{
+          background-color: #f6f6f7;
+        }
+        &::before{
+          font-size: 19px;
+          vertical-align: middle;
+        }
+        span{
+          padding-left: 7px;
+          overflow: hidden;   
+          white-space: nowrap;  
+          text-overflow: ellipsis; 
+        }
+      }
+      .other-active{
+        background-color: #f6f6f7;
+      }
+    }
   }
+}
+.content{
+  width: 100%;
+  padding: 20px 30px;
 }
 </style>
