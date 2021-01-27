@@ -1,15 +1,22 @@
 <template>
-    {{bannerList}}
+    <swiper :imageList="bannerList"></swiper>
+    <!-- {{bannerList}} -->
 </template>
 <script lang="ts">
 import { defineComponent, getCurrentInstance, reactive, toRefs } from 'vue'
+
+import Swiper from '../components/Swiper.vue'
+
 export default defineComponent({
     name:'recommendMusic',
+    components:{
+        Swiper
+    },
     setup(){
         const {appContext}: any = getCurrentInstance()
         const $http = appContext.config.globalProperties.$http
 
-        // 获取轮播图\
+        // 获取轮播图
         const state = reactive({
             bannerList:[]
         })

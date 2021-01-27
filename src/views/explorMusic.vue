@@ -37,6 +37,5 @@ export default defineComponent({
     max-width: 1100px;
     height: calc(100% - 50px);
     margin: 0 auto;
-    background-color: pink;
 }
 </style>

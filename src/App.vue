@@ -173,6 +173,7 @@ export default defineComponent({
         }
       }
       .main-active{
+        color: #313131;
         font-weight: bold;
         font-size: 18px;
         background-color: #f6f6f7;
