@@ -1,50 +1,24 @@
 <template>
     <div class="swiper-container">
-        <ul class="swiper-main">
+        <ul class="swiper-main start">
             <li v-for="(item) in imageList" 
                 :key="item.targetId" 
-                :ref="setItemRef"
-                class="">
+                :ref="setItemRef">
                 <img :src="item.imageUrl" alt="">
             </li>
-            <!-- <li class="base">
-                <img src="http://p1.music.126.net/BTUi50pgIRv_-D6duwK4Fg==/109951165669235302.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/BW-v_cPhgeIr77B3GuQ0EA==/109951165669222743.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/kivc5Uo-78PA7OuTinMyVw==/109951165667525529.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/bbxj0yP1-cWtBjwsTjF78A==/109951165667737887.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/WPVCYYzt1bCEwWJz6qMQow==/109951165667755518.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/ffVsEwnEe2EWn1wOYCEo-A==/109951165667772392.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/OnGx3wHOZ_Bo8i7p9CA-Hw==/109951165667789279.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/c4IlsfyzpmNhPQq_qkQZjA==/109951165667757289.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/8OrTQLzEUUTbkF8aA8okPQ==/109951165667528732.jpg" alt="">
-            </li>
-            <li class="base">
-                <img src="http://p1.music.126.net/-GWq0VQoqJvJDZU-dDnDPw==/109951165667779898.jpg" alt="">
-            </li> -->
         </ul>
-        <button @click="back(activeIndex)">&lt;</button>
-        <button @click="next(activeIndex)">&gt;</button>
-        <button @click="jump">test</button>
+        <span class="btn btn-left iconfont icon-left" @click="back(activeIndex)"></span>
+        <span class="btn btn-right iconfont icon-right" @click="next(activeIndex)"></span>
     </div>
+    <ul class="mark">
+        <li v-for="(item,index) in imageList" 
+            :key="item.targetId" 
+            @mouseenter="enter(index)" 
+            :class="{'active':index==activeIndex}"></li>
+    </ul>
 </template>
 <script lang="ts">
-import {ref, defineComponent, onMounted, onUpdated, nextTick, onBeforeUpdate } from 'vue'
+import {ref, defineComponent} from 'vue'
 export default defineComponent({
     name:'Swiper',
     props:['imageList'],
@@ -52,19 +26,17 @@ export default defineComponent({
         const itemRefs: any[] = []
 
         const activeIndex = ref(0)
-
+        
         const setItemRef = el => {
-            itemRefs.push(el)
+            if(itemRefs.length<props.imageList.length){
+                itemRefs.push(el)
+            }
         }
         
-        onUpdated(()=>{
-            const length = itemRefs.length
-            itemRefs[0].classList = ['base']
-            itemRefs[1].classList = ['right']
-            itemRefs[length-1].classList = ['left']
-        })
-        
         const next = (targetIndex) =>{
+            const dom = document.querySelector('.swiper-main')
+            dom.classList.remove('start')
+            
             const leftIndex = targetIndex-1 >= 0 ? targetIndex-1:itemRefs.length-1
             const rightIndex = targetIndex+1 <= itemRefs.length-1 ? targetIndex+1:0
             const rightRightIndex = rightIndex+1 <= itemRefs.length-1 ? rightIndex+1:0
@@ -73,15 +45,19 @@ export default defineComponent({
             itemRefs[rightIndex].classList=['rightToBase-next']
             itemRefs[leftIndex].classList=['leftToBase-next']
             itemRefs[rightRightIndex].classList = ['baseToRight-next']
-
+            
             if(targetIndex==itemRefs.length-1){
                 targetIndex = 0
             }else{
                 targetIndex++
             }
+            
             activeIndex.value = targetIndex
         }
         const back = (targetIndex) =>{
+            const dom = document.querySelector('.swiper-main')
+            dom.classList.remove('start')
+
             const leftIndex = targetIndex-1 >= 0 ? targetIndex-1:itemRefs.length-1
             const rightIndex = targetIndex+1 <= itemRefs.length-1 ? targetIndex+1:0
             const leftLeftIndex = leftIndex-1 >= 0 ? leftIndex-1:itemRefs.length-1
@@ -98,17 +74,21 @@ export default defineComponent({
             }
             activeIndex.value = targetIndex
         }
-        const jump = ()=>{
-            itemRefs.forEach(item=>item.classList = [])
-            next(5)
+        const enter = (index)=>{
+            if(index>activeIndex.value){
+                itemRefs.forEach(item=>item.classList = [])
+                next(index-1)
+            }else if(index<activeIndex.value){
+                itemRefs.forEach(item=>item.classList = [])
+                back(index+1)
+            }
         }
         return {
-            // itemRefs,
             activeIndex,
             setItemRef,
             next,
             back,
-            jump
+            enter
         }
     }
 })
@@ -116,8 +96,11 @@ export default defineComponent({
 <style lang="less" scoped>
 .swiper-container{
     width: 100%;
-    height: 300px;
     overflow: hidden;
+    position: relative;
+    &:hover .btn{
+        display: block;
+    }
 }
 .swiper-main{
     width: calc(100% + 92px);
@@ -141,22 +124,6 @@ export default defineComponent({
     }
     .hide{
         opacity: 0;
-    }
-    .base{
-        z-index: 100;
-        opacity: 1;
-    }
-    .left{
-        opacity: 1;
-        z-index: 99;
-        left: 0;
-        transform: translateX(0) scale(.83);
-    }
-    .right{
-        opacity: 1;
-        z-index: 99;
-        left: calc(100% - 540px);
-        transform: translateX(0) scale(.83);
     }
     .baseToRight-next{
         animation: baseToRight-next .6s forwards;
@@ -293,6 +260,58 @@ export default defineComponent({
         }
     }
 }
-
-
+.start li:last-child{
+    opacity: 1;
+    z-index: 99;
+    left: 0;
+    transform: translateX(0) scale(.83);
+}
+.start li:nth-child(1){
+    z-index: 100;
+    opacity: 1;
+}
+.start li:nth-child(2){
+    opacity: 1;
+    z-index: 99;
+    left: calc(100% - 540px);
+    transform: translateX(0) scale(.83);
+}
+.btn{
+    position: absolute;
+    top: 50%;
+    z-index: 100;
+    transform: translateY(-50%);
+    color: white;
+    background-color:rgba(0, 0, 0, .2);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    margin: 0 7px;
+    display: none;
+    cursor: pointer;
+}
+.btn-left{
+    left: 0;
+}
+.btn-right{
+    right: 0;
+}
+.mark{
+    display: flex;
+    justify-content: center;
+    li{
+        box-sizing: content-box;
+        width: 6px;
+        height: 6px;
+        background-color: #e6e6e6;
+        border-radius: 50%;
+        margin: 10px 1px 0 1px;
+        border: 4px solid white;
+    }
+    .active{
+        background-color: #ec4141;
+    }
+}
 </style>
