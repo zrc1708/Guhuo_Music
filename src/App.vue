@@ -1,4 +1,5 @@
 <template>
+  <Loginbox v-if="showLogin" @close="close" @loginBtnClick="loginClick"></Loginbox>
   <!-- 顶部导航 -->
   <header class="header">
     <div class="logo-box">
@@ -12,8 +13,8 @@
       </div>
     </div>
     <div class="header-user">
-      <img :src="require('./assets/logo.jpg')" alt="">
-      <span class="username">jibei</span>
+      <img :src="avatarUrl||$store.state.userAccount.avatarUrl||require('./assets/logo.jpg')" alt="">
+      <span class="username" @click="login">{{username||$store.state.userAccount.nickname||"未登录"}}</span>
     </div>
   </header>
   <!-- 内容 -->
@@ -51,10 +52,67 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, getCurrentInstance, onMounted, ref } from 'vue'
+import request from '../utils/http'
+import Loginbox from './components/Loginbox.vue'
+import { useStore } from "vuex";
 
 export default defineComponent({
   name:'App',
+  components:{
+    Loginbox
+  },
+  setup(){
+    const showLogin = ref(false)
+    const login = ()=>{
+      showLogin.value = true
+    }
+    const close = ()=>{
+      showLogin.value = false
+    }
+
+    // 检查本次存储是否有用户基本信息
+    const username = ref('')
+    username.value = localStorage.getItem('username')
+    const avatarUrl = ref('')
+    avatarUrl.value = localStorage.getItem('avatarUrl')
+
+    // 使用vueX
+    const store = useStore()
+    // 获取推荐歌单
+    const getRecommendResource = async ()=>{
+      const res: any = await request('/recommend/resource')
+      console.log(res);
+    }
+
+    // 登录
+    const loginClick = async (user)=>{
+      const res: any = await request('/login/cellphone',user,'post')
+      if(res.profile.userId){
+        console.log(res.profile);
+        // 存储基本信息
+        localStorage.setItem('phone',user.phone)
+        localStorage.setItem('username',res.profile.nickname)
+        localStorage.setItem('avatarUrl',res.profile.avatarUrl)
+        store.commit('setUser', res.profile)
+        showLogin.value = false
+        getRecommendResource()
+      }
+    }
+
+    onMounted(()=>{
+      getRecommendResource()
+    })
+
+    return{
+      showLogin,
+      login,
+      close,
+      loginClick,
+      username,
+      avatarUrl
+    }
+  }
 })
 </script>
 
@@ -144,6 +202,7 @@ export default defineComponent({
     .username{
       color: #f9c6c6;
       margin-right: 20px;
+      cursor: pointer;
     }
   }
   
