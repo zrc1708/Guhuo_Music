@@ -79,12 +79,7 @@ export default defineComponent({
 
     // 使用vueX
     const store = useStore()
-    // 获取推荐歌单
-    const getRecommendResource = async ()=>{
-      const res: any = await request('/recommend/resource')
-      console.log(res);
-    }
-
+    
     // 登录
     const loginClick = async (user)=>{
       const res: any = await request('/login/cellphone',user,'post')
@@ -96,13 +91,8 @@ export default defineComponent({
         localStorage.setItem('avatarUrl',res.profile.avatarUrl)
         store.commit('setUser', res.profile)
         showLogin.value = false
-        getRecommendResource()
       }
     }
-
-    onMounted(()=>{
-      getRecommendResource()
-    })
 
     return{
       showLogin,
@@ -136,7 +126,6 @@ export default defineComponent({
       padding-left: 30px;
       text-decoration: none;
       font-size: 19px;
-      font-weight: bold;
     }
   }
   .header-control{

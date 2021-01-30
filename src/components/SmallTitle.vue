@@ -14,6 +14,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .smalltitle-container{
     margin-top: 17px;
+    margin-bottom: 12px;
 }
 .title{
     color: #373737;

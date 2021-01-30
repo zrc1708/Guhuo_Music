@@ -1,18 +1,36 @@
 <template>
     <swiper :imageList="bannerList"></swiper>
     <SmallTitle title="推荐歌单"></SmallTitle>
+    <div class="songList-box">
+        <Mediabox class="mediabox" :isRecommend="true" text="每日歌曲推荐"></Mediabox>
+        <Mediabox   class="mediabox"
+                    v-for="item in songList" 
+                    :key="item.id"
+                    :imageSrc="item.picUrl"
+                    :text="item.name"
+                    :playcount="item.playcount"></Mediabox>
+    </div>
+    <SmallTitle title="最新音乐"></SmallTitle>
+    <div class="newMusic-box">
+        <NewMusicbox class="newmusicbox"
+                    v-for="item in newMusicList" 
+                    :key="item.id"
+                    :item="item"></NewMusicbox>
+    </div>
 </template>
 <script lang="ts">
-import { defineComponent, getCurrentInstance, reactive, toRefs } from 'vue'
+import { defineComponent, onMounted, reactive, toRefs } from 'vue'
 
 import Swiper from '../components/Swiper.vue'
 import SmallTitle from '../components/SmallTitle.vue'
 import request from '../../utils/http'
+import Mediabox from '../components/Mediabox.vue'
+import NewMusicbox from '../components/NewMusicbox.vue'
 
 export default defineComponent({
     name:'recommendMusic',
     components:{
-        Swiper,SmallTitle
+        Swiper,SmallTitle,Mediabox,NewMusicbox
     },
     setup(){
         // const {appContext}: any = getCurrentInstance()
@@ -20,7 +38,8 @@ export default defineComponent({
 
         const state = reactive({
             bannerList:[],
-            songList:[]
+            songList:[],
+            newMusicList:[]
         })
         // 获取轮播图
         const getBanner = async ()=>{
@@ -29,10 +48,25 @@ export default defineComponent({
         }
         getBanner()
         
-        const getSongList = async ()=>{
-            return 1
+        // 获取推荐歌单
+        const getRecommendResource = async ()=>{
+            const res: any = await request('/recommend/resource')
+            res.recommend.splice(8,res.recommend.length-9)
+            state.songList = res.recommend
         }
-        getSongList()
+        
+        // 获取最新音乐
+        const getNewMusicList = async ()=>{
+            const res: any = await request('/top/song?type=0')
+            res.data.splice(11,res.data.length-12)
+            state.newMusicList = res.data
+            console.log(state.newMusicList);
+        }
+
+        onMounted(()=>{
+            getRecommendResource()
+            getNewMusicList()
+        })
 
         return {
             ...toRefs(state)
@@ -41,5 +75,20 @@ export default defineComponent({
 })
 </script>
 <style lang="less" scoped>
-
+.songList-box{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.mediabox{
+    width: calc(20% - 16px);
+}
+.newMusic-box{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.newmusicbox{
+    width: calc(33.3% - 7.3px);
+}
 </style>
