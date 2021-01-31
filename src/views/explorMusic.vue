@@ -1,7 +1,9 @@
 <template>
     <Navigation :navItem="navItem"></Navigation>
-    <div class="container">
-        <router-view></router-view>
+    <div class="overflow">
+        <div class="container">
+            <router-view></router-view>
+        </div>
     </div>
 </template>
 <script lang="ts">
@@ -32,10 +34,26 @@ export default defineComponent({
 })
 </script>
 <style lang="less" scoped>
+.overflow{
+    width: 100%;
+    height: calc(100% - 70px);
+    overflow-y: auto;
+    padding: 0 30px;
+
+    &::-webkit-scrollbar {
+        /*滚动条整体样式*/
+        width : 5px;  /*高宽分别对应横竖滚动条的尺寸*/
+        height: 1px;
+    }
+    &::-webkit-scrollbar-thumb {
+        /*滚动条里面小方块*/
+        border-radius: 10px;
+        background   :rgb(224, 224, 224);
+    }
+}
 .container{
     width: 100%;
     max-width: 1100px;
-    height: calc(100% - 50px);
     margin: 0 auto;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <swiper :imageList="bannerList"></swiper>
+    <swiper :imageList="bannerList" :autoplay="true"></swiper>
     <SmallTitle title="推荐歌单"></SmallTitle>
     <div class="songList-box">
         <Mediabox class="mediabox" :isRecommend="true" text="每日歌曲推荐"></Mediabox>
@@ -60,7 +60,7 @@ export default defineComponent({
             const res: any = await request('/top/song?type=0')
             res.data.splice(11,res.data.length-12)
             state.newMusicList = res.data
-            console.log(state.newMusicList);
+            // console.log(state.newMusicList);
         }
 
         onMounted(()=>{
@@ -85,8 +85,11 @@ export default defineComponent({
 }
 .newMusic-box{
     display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-content: space-between;
+    height: 256px;
 }
 .newmusicbox{
     width: calc(33.3% - 7.3px);

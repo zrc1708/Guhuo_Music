@@ -22,10 +22,16 @@ export default defineComponent({
 .navul{
     display: flex;
     align-items: flex-end;
-    padding-bottom: 25px;
+    margin-top: 20px;
+    margin-left: 30px;
+    padding-bottom: 15px;
     li{
         margin-right: 24px;
         cursor: pointer;
+        color: rgb(55, 55, 55);
+        &:hover{
+            color: black;
+        }
     }
     .active{
         font-weight: bold;

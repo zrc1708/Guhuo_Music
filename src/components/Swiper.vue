@@ -18,10 +18,10 @@
     </ul>
 </template>
 <script lang="ts">
-import {ref, defineComponent} from 'vue'
+import {ref, defineComponent, onMounted} from 'vue'
 export default defineComponent({
     name:'Swiper',
-    props:['imageList'],
+    props:['imageList','autoplay'],
     setup(props, context){
         const itemRefs: any[] = []
 
@@ -83,6 +83,15 @@ export default defineComponent({
                 back(index+1)
             }
         }
+
+        onMounted(()=>{
+            if(props.autoplay){
+                setInterval(()=>{
+                    next(activeIndex.value)
+                },5000)
+            }
+        })
+
         return {
             activeIndex,
             setItemRef,

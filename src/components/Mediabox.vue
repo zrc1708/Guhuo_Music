@@ -35,7 +35,9 @@ export default defineComponent({
             }else if(str.length<=7){
                 return parseInt(str.substr(0,str.length-3))/10+'万'
             }else{
-                return parseInt(str.substr(0,str.length-7))/10+'亿'
+                const num = parseInt(str.substr(0,str.length-7))
+                const ans = num/10>1?num/10+'亿':num+'亿'
+                return ans
             }
         })
         
