@@ -5,7 +5,7 @@
             <span class="day">{{day}}</span>
         </div>
         <div class="relative picbox" v-if="!isRecommend">
-            <img class="pic" :src="imageSrc" alt="">
+            <img class="pic" :src="imageSrc+`?param=200y200`" alt="">
             <i class="playicon iconfont icon-play-full"></i>
             <span class="playconut"><i class="iconfont icon-bofang"></i>{{playCount}}</span>
         </div>
@@ -104,6 +104,11 @@ export default defineComponent({
     opacity: 0;
     transition: all .8s;
 }
+// .picbox{
+//     border: 1px solid red;
+//     // padding-bottom: -100%;
+//     // overflow: hidden;
+// }
 .picbox:hover .playicon{
     opacity: 1;
 }

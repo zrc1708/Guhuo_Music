@@ -50,20 +50,39 @@
       <router-view></router-view>
     </div>
   </div>
-  <!-- 音乐控制栏 -->
+  <!-- 音乐播放详情组件 -->
+  <PlayMusic :show="showPlayMusic" v-if="$store.state.musicObj"></PlayMusic>
+  <!-- 底部音乐控制栏 -->
   <div class="music-control-box">
+      <audio v-show="false" class="myAudio" ref="myAudio" :src="$store.state.musicObj&&$store.state.musicUrl.url"></audio>
       <div class="music-detail" v-if="$store.state.musicObj">
         <img :src="$store.state.musicObj.al.picUrl" alt="">
-        <div class="img-mask">
+        <div class="img-mask" @click="maskClick">
           <i class="iconfont icon-jiantou"></i>
           <i class="iconfont icon-jiantou"></i>
         </div>
         <div class="music-text">
           <span class="music-name">
-            <span class="main-name">{{$store.state.musicObj.al.name}}</span>
-            <span class="side-name">{{('('+$store.state.musicObj.alia[0]+')')}}</span>
+            <span class="main-name">{{$store.state.musicObj.name}}</span>
+            <span class="side-name">{{$store.state.musicObj.alia[0]&&('('+$store.state.musicObj.alia[0]+')')}}</span>
           </span>
           <span class="music-author">{{$store.state.musicObj.ar.map(item=>item.name).join('/')}}</span>
+        </div>
+      </div>
+      <div class="music-control">
+        <div class="music-control-btn">
+          <i class="iconfont icon-shangyishou"></i>
+          <i class="iconfont" :class="[isPlay?'icon-pause-full':'icon-play-full']" @click="playMusic"></i>
+          <i class="iconfont icon-xiayishou"></i>
+        </div>
+        <div class="music-progress">
+          <span class="time start-time">{{currentTime}}</span>
+          <div class="progress">
+            <div class="now-progress" ref="myProgress">
+              <i class="progress-point"></i>
+            </div>
+          </div>
+          <span class="time end-time">{{$store.state.musicObj?$store.state.musicObj.lastTime:'00:00'}}</span>
         </div>
       </div>
   </div>
@@ -74,15 +93,21 @@
 import { defineComponent, getCurrentInstance, onMounted, ref } from 'vue'
 import request from '../utils/http'
 import Loginbox from './components/Loginbox.vue'
+import PlayMusic from './components/PlayMusic.vue'
 import { useStore } from "vuex";
+import moment from 'moment'
 
 export default defineComponent({
   name:'App',
   components:{
-    Loginbox
+    Loginbox,PlayMusic
   },
   setup(){
     const showLogin = ref(false)
+    const showPlayMusic = ref(false)
+    const isPlay = ref(false)
+    const currentTime = ref('00:00') //歌曲实时时间
+    const myProgress = ref(null) //进度条dom对象
     const login = ()=>{
       showLogin.value = true
     }
@@ -100,6 +125,7 @@ export default defineComponent({
     const store = useStore()
     onMounted(()=>{
       store.dispatch('playMusic',1501212275)
+      // store.dispatch('playMusic',288838)
     })
 
     // 登录
@@ -116,13 +142,80 @@ export default defineComponent({
       }
     }
 
+    // 音乐专辑点击事件
+    const maskClick = ()=>{
+      showPlayMusic.value = !showPlayMusic.value
+    }
+
+    // 获取播放器dom对象
+    // const myAudio = ref(null)
+    // 播放按钮
+    let time = null
+    const playMusic = ()=>{
+      const myAudio: HTMLAudioElement = document.querySelector('.myAudio')
+      
+      if(myAudio.paused){
+        isPlay.value = true
+        myAudio.play()
+        time = setInterval(()=>{
+          if(myAudio.ended) {
+            clearInterval(time)
+            isPlay.value = false
+            myProgress.value.style.width = '392px'
+            currentTime.value = store.state.musicObj.lastTime
+            return
+          }
+          const alltime = store.state.musicObj.dt
+          const percent = myAudio.currentTime*1000 / alltime
+          const length = Math.ceil(392 * percent)
+          currentTime.value = moment(myAudio.currentTime*1000).format('mm:ss')
+          myProgress.value.style.width = length+'px'
+        },500)
+      }else{
+        isPlay.value = false
+        myAudio.pause()
+        clearInterval(time)
+      }
+      // myAudio.currentTime = 30
+      // myAudio.play()
+    }
+
+    // 设置拖拽事件
+    let x = 0
+    let newx = 0
+    let isdown = false
+    onMounted(()=>{
+      const point: HTMLElement = document.querySelector('.progress-point')
+      point.addEventListener('mousedown',(e)=>{
+        x = e.clientX;
+        isdown = true
+      })
+      point.addEventListener('mousemove',(e)=>{
+        if(!isdown) return
+        newx = e.clientX;
+        const width = myProgress.value.style.width.replace('px','')
+        myProgress.value.style.width = Number(width)+newx-x+'px'
+        x = newx
+      })
+      point.addEventListener('mouseup',(e)=>{
+        isdown = false
+      })
+    })
+
     return{
       showLogin,
       login,
       close,
       loginClick,
       username,
-      avatarUrl
+      avatarUrl,
+      showPlayMusic,
+      maskClick,
+      playMusic,
+      // myAudio,
+      isPlay,
+      myProgress,
+      currentTime
     }
   }
 })
@@ -402,5 +495,85 @@ export default defineComponent({
     }
     
   }
+}
+.music-control{
+  width: 500px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  .music-control-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    i{
+      color: rgb(49, 49, 50);
+      cursor: pointer;
+    }
+    i:nth-child(1),i:nth-child(3){
+      font-size: 16px;
+      margin: 0 31px;
+      &:hover{
+        color: rgb(237, 101, 102);
+      }
+    }
+    i:nth-child(2){
+      font-size: 20px;
+      width: 35px;
+      height: 35px;
+      background-color: rgb(235, 235, 237);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 35px;
+      &:hover{
+        background-color: rgb(221, 221, 222);
+      }
+    }
+  }
+  .music-progress{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .progress{
+      width: 392px;
+      height: 3px;
+      background-color: #c2c2c4;
+      display: flex;
+      align-items: center;
+      &:hover{
+        height: 5px;
+        .progress-point{
+          visibility: visible;
+        }
+      }
+    }
+    .time{
+      font-size: 12px;
+      transform: scale(.8);
+      color: #939395;
+    }
+  }
+}
+.now-progress{
+  width: 0px;
+  height: 100%;
+  background-color: #ff4e4e;
+  position: relative;
+}
+.progress-point{
+  visibility: hidden;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(4.5px,-50%);
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  box-sizing: content-box;
+  background-color: #ec4141;
+  border: 3px solid #ec4141;
 }
 </style>
