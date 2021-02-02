@@ -7,7 +7,8 @@ export default createStore({
     userAccount:'',
     musicUrl:null,
     musicObj:null,
-    musicLrc:null
+    musicLrc:null,
+    isPlay:false
   },
   mutations: {
     setUser(state, val){
@@ -21,6 +22,9 @@ export default createStore({
     },
     setMusicLrc(state, val){
       state.musicLrc = val
+    },
+    setIsPlay(state, val){
+      state.isPlay = val
     }
   },
   actions: {

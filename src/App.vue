@@ -72,7 +72,7 @@
       <div class="music-control">
         <div class="music-control-btn">
           <i class="iconfont icon-shangyishou"></i>
-          <i class="iconfont" :class="[isPlay?'icon-pause-full':'icon-play-full']" @click="playMusic"></i>
+          <i class="iconfont" :class="[isPlay?'icon-pause-full':'icon-play-full']" @click="playMusic()"></i>
           <i class="iconfont icon-xiayishou"></i>
         </div>
         <div class="music-progress">
@@ -124,8 +124,8 @@ export default defineComponent({
     // 使用vueX
     const store = useStore()
     onMounted(()=>{
-      store.dispatch('playMusic',1501212275)
-      // store.dispatch('playMusic',288838)
+      // store.dispatch('playMusic',1501212275)
+      store.dispatch('playMusic',288838)
     })
 
     // 登录
@@ -147,60 +147,98 @@ export default defineComponent({
       showPlayMusic.value = !showPlayMusic.value
     }
 
-    // 获取播放器dom对象
-    // const myAudio = ref(null)
-    // 播放按钮
+    // 进度条随音乐播放移动事件
+    const myAudio = ref(null)
+    let moveTime = null
+    const pointMove = (flag)=>{
+      if(flag){
+        moveTime = setInterval(()=>{
+          const alltime = store.state.musicObj.dt
+          const percent = myAudio.value.currentTime*1000 / alltime
+          const length = Math.ceil(392 * percent)
+          currentTime.value = moment(myAudio.value.currentTime*1000).format('mm:ss')
+          myProgress.value.style.width = length+'px'
+        },500)
+      }else{
+        clearInterval(moveTime)
+      }
+    }
+
+    // 播放核心逻辑
     let time = null
-    const playMusic = ()=>{
-      const myAudio: HTMLAudioElement = document.querySelector('.myAudio')
-      
-      if(myAudio.paused){
+    const playMusic = (playTime?)=>{
+      // 若为定点播放，先设置时间，调整进度条位置
+      if( playTime ){
+        myAudio.value.currentTime = playTime
+        const alltime = store.state.musicObj.dt
+        const percent = myAudio.value.currentTime*1000 / alltime
+        const length = Math.ceil(392 * percent)
+        myProgress.value.style.width = length+'px'
+      }
+      if(playTime || myAudio.value.paused){
+        // 开始播放
+        store.commit('setIsPlay',true)
         isPlay.value = true
-        myAudio.play()
+        myAudio.value.play()
+        // 进度条移动
+        pointMove(true)
+        // 时间变化
         time = setInterval(()=>{
-          if(myAudio.ended) {
+          if(myAudio.value.ended) {
             clearInterval(time)
+            pointMove(false)
+            store.commit('setIsPlay',false)
             isPlay.value = false
             myProgress.value.style.width = '392px'
             currentTime.value = store.state.musicObj.lastTime
             return
           }
-          const alltime = store.state.musicObj.dt
-          const percent = myAudio.currentTime*1000 / alltime
-          const length = Math.ceil(392 * percent)
-          currentTime.value = moment(myAudio.currentTime*1000).format('mm:ss')
-          myProgress.value.style.width = length+'px'
+          currentTime.value = moment(myAudio.value.currentTime*1000).format('mm:ss')
         },500)
       }else{
+        store.commit('setIsPlay',false)
         isPlay.value = false
-        myAudio.pause()
+        myAudio.value.pause()
         clearInterval(time)
+        pointMove(false)
       }
-      // myAudio.currentTime = 30
-      // myAudio.play()
     }
 
-    // 设置拖拽事件
+    // 根据进度条进度播放
+    const playAtAnyTime = ()=>{
+      const width = myProgress.value.style.width.replace('px','')
+      const percent = Number(width)/392
+      const alltime = store.state.musicObj.dt
+      let playtime = Math.floor(alltime*percent/1000)
+      playtime = playtime > alltime/1000 ? alltime/1000 : playtime
+      playMusic(playtime)
+    }
+
+    // 拖拽相关逻辑
     let x = 0
     let newx = 0
-    let isdown = false
+    function mousemove(e){
+      // 停止进度条自动移动防止冲突
+      pointMove(false)
+      newx = e.clientX;
+      const width = myProgress.value.style.width.replace('px','')
+      myProgress.value.style.width = Number(width)+newx-x+'px'
+      x = newx
+    }
+    function mouseup(e){
+      document.removeEventListener('mousemove', mousemove)
+      document.removeEventListener('mouseup', mouseup)
+      playAtAnyTime()
+    }
     onMounted(()=>{
       const point: HTMLElement = document.querySelector('.progress-point')
       point.addEventListener('mousedown',(e)=>{
         x = e.clientX;
-        isdown = true
-      })
-      point.addEventListener('mousemove',(e)=>{
-        if(!isdown) return
-        newx = e.clientX;
-        const width = myProgress.value.style.width.replace('px','')
-        myProgress.value.style.width = Number(width)+newx-x+'px'
-        x = newx
-      })
-      point.addEventListener('mouseup',(e)=>{
-        isdown = false
+        document.addEventListener('mousemove', mousemove)
+        document.addEventListener('mouseup', mouseup)
       })
     })
+
 
     return{
       showLogin,
@@ -212,7 +250,7 @@ export default defineComponent({
       showPlayMusic,
       maskClick,
       playMusic,
-      // myAudio,
+      myAudio,
       isPlay,
       myProgress,
       currentTime
