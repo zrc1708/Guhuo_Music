@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory,createWebHistory, RouteRecordRaw } from 'vue-router'
 
 import explorMusic from '../views/explorMusic.vue'
 import recommendMusic from '../views/recommendMusic.vue'
@@ -21,7 +21,9 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  // history: createWebHashHistory(),
+  history: createWebHistory(),
+  // history: createWebHistory(process.env.BASE_URL),
   routes
 })
 

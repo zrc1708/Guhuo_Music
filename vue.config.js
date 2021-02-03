@@ -18,5 +18,6 @@ module.exports={
                 }
             }
         }
-      }
+    },
+    publicPath: "/",//history模式下publicPath: "/",hash模式下publicPath: "./"
 }

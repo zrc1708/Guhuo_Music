@@ -124,8 +124,8 @@ export default defineComponent({
     // 使用vueX
     const store = useStore()
     onMounted(()=>{
-      // store.dispatch('playMusic',1501212275)
-      store.dispatch('playMusic',288838)
+      store.dispatch('playMusic',1501212275)
+      // store.dispatch('playMusic',288838)
     })
 
     // 登录
@@ -211,7 +211,11 @@ export default defineComponent({
       const alltime = store.state.musicObj.dt
       let playtime = Math.floor(alltime*percent/1000)
       playtime = playtime > alltime/1000 ? alltime/1000 : playtime
-      playMusic(playtime)
+      if(isPlay.value){
+        playMusic(playtime)
+      }else{
+        myAudio.value.currentTime = playtime
+      }
     }
 
     // 拖拽相关逻辑
