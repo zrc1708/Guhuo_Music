@@ -21,20 +21,24 @@
                     </span>
                 </div>
                 <!-- <textarea name="" id="" cols="40" rows="20" v-model="$store.state.musicLrc.lrc.lyric"></textarea> -->
-                <div class="lrc-container">
+                <div class="lrc-container" ref="lrcContainer" v-if="lrcArr[0]">
                     <div class="sentence" 
                         v-for="(item,index) in lrcArr" 
                         :key="index">
                         {{item.world}}
                     </div>
                 </div>
+                <div class="lrc-container" v-else>
+                    暂无歌词
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref, toRefs, watch } from 'vue'
+import { defineComponent, onMounted, computed, reactive, ref, toRefs, watch } from 'vue'
 import { useStore } from "vuex";
+import moment from 'moment'
 
 export default defineComponent({
     name:'PlayMusic',
@@ -44,30 +48,41 @@ export default defineComponent({
     setup(props,context){
         const store = useStore()
         const state = reactive({
-            lrcArr:[]
+            lrcArr:null
         })
 
-        onMounted(()=>{
-            console.log(store.state);
-            // console.log(store.state.musicLrc.lrc.lyric)
+        // 获取歌词
+        state.lrcArr = computed(() => {
             const arr = store.state.musicLrc.lrc.lyric.split('\n')
-            // console.log(arr);
+            const ans = []
+            let index = 0
             arr.forEach(item =>{
                 const time = item.match(/\[([^)]*)\]/,'')
                 const world = item.replace(/^\[\S*\]/,'')
+                let arr = []
+                let second = 0
+                // console.log(time[1])
+                if(time){
+                    arr = time[1].split(':')
+                    if(arr.length==2){
+                        second = Number(arr[0])*60+Number(arr[1])
+                    }else if(arr.length==3){
+                        second = Number(arr[0])*60*60+Number(arr[1])*60+Number(arr[2])
+                    }
+                }
                 if(time) {
-                    state.lrcArr.push({
-                        time,
+                    ans.push({
+                        index:index++,
+                        time:time[1],
+                        second,
                         world
                     })
                 }
             })
-            state.lrcArr.forEach(item => {
-                console.log(item);
-                
-            });
+            return ans
         })
         
+        // 唱片滚动逻辑
         const disc = ref(null)
         let discTimer = null
         watch(()=>store.state.isPlay,(val)=>{
@@ -84,9 +99,50 @@ export default defineComponent({
             }
         })
 
+        
+        // 歌词滚动动画效果
+        function animate(obj, target) {
+            clearInterval(obj.timer)
+            obj.timer = setInterval(function () {
+                let step = (target - obj.scrollTop) / 10
+                step = step > 0 ? Math.ceil(step) : Math.floor(step)
+                if (obj.scrollTop == target) {
+                    clearInterval(obj.timer)
+                }
+                obj.scrollTop = obj.scrollTop + step
+            }, 15);
+        }
+        
+        // 歌词滚动逻辑
+        const {myAudio} = store.state
+        const lrcContainer = ref(null)
+        let lrcTimer = null
+        watch(()=>store.state.isPlay,(val)=>{
+            if(val){
+                lrcTimer = setInterval(()=>{
+                    let maxIndex = 0
+                    // 重置歌词颜色
+                    for (let i = 0; i < lrcContainer.value.children.length; i++) {
+                        lrcContainer.value.children[i].style = ''
+                        if(state.lrcArr[i].second<myAudio.currentTime+0.2){
+                            maxIndex = i
+                        }
+                    }
+                    // 设置匹配的歌词
+                    lrcContainer.value.children[maxIndex].style.color = 'black'
+                    lrcContainer.value.children[maxIndex].style.fontSize = '16px'
+                    lrcContainer.value.children[maxIndex].style.fontWeight = 'bold'
+                    animate(lrcContainer.value,lrcContainer.value.children[maxIndex].offsetTop-121)
+                },200)
+            }else{
+                clearInterval(lrcTimer)
+            }
+        })
+
         return {
             disc,
-            ...toRefs(state)
+            ...toRefs(state),
+            lrcContainer
         }
     }
 })
@@ -119,7 +175,6 @@ export default defineComponent({
     // background-color: pink;
     display: flex;
     overflow: hidden;
-
     .music-picbox{
         width: 50%;
         position: relative;
@@ -209,6 +264,7 @@ export default defineComponent({
     }
 }
 .lrc-container{
+    position: relative;
     overflow-y: auto;
     margin-top: 34px;
     border-right: 1px solid rgb(233, 233, 235);

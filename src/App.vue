@@ -71,9 +71,9 @@
       </div>
       <div class="music-control">
         <div class="music-control-btn">
-          <i class="iconfont icon-shangyishou"></i>
+          <i class="iconfont icon-shangyishou" @click="backMusic"></i>
           <i class="iconfont" :class="[isPlay?'icon-pause-full':'icon-play-full']" @click="playMusic()"></i>
-          <i class="iconfont icon-xiayishou"></i>
+          <i class="iconfont icon-xiayishou" @click="nextMusic"></i>
         </div>
         <div class="music-progress">
           <span class="time start-time">{{currentTime}}</span>
@@ -90,7 +90,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, getCurrentInstance, onMounted, ref } from 'vue'
+import { defineComponent, onMounted, ref, watch} from 'vue'
 import request from '../utils/http'
 import Loginbox from './components/Loginbox.vue'
 import PlayMusic from './components/PlayMusic.vue'
@@ -108,6 +108,7 @@ export default defineComponent({
     const isPlay = ref(false)
     const currentTime = ref('00:00') //歌曲实时时间
     const myProgress = ref(null) //进度条dom对象
+    const myAudio = ref(null)
     const login = ()=>{
       showLogin.value = true
     }
@@ -124,8 +125,7 @@ export default defineComponent({
     // 使用vueX
     const store = useStore()
     onMounted(()=>{
-      store.dispatch('playMusic',1501212275)
-      // store.dispatch('playMusic',288838)
+      store.commit('setMyAudio',myAudio)
     })
 
     // 登录
@@ -148,7 +148,6 @@ export default defineComponent({
     }
 
     // 进度条随音乐播放移动事件
-    const myAudio = ref(null)
     let moveTime = null
     const pointMove = (flag)=>{
       if(flag){
@@ -167,6 +166,7 @@ export default defineComponent({
     // 播放核心逻辑
     let time = null
     const playMusic = (playTime?)=>{
+      if(!store.state.musicUrl) return
       // 若为定点播放，先设置时间，调整进度条位置
       if( playTime ){
         myAudio.value.currentTime = playTime
@@ -203,6 +203,13 @@ export default defineComponent({
         pointMove(false)
       }
     }
+
+    // 检测到音乐资源后自动进行播放
+    watch(()=>store.state.musicLrc,(val)=>{
+      setTimeout(()=>{
+        playMusic()  
+      },50)
+    })
 
     // 根据进度条进度播放
     const playAtAnyTime = ()=>{
@@ -244,6 +251,24 @@ export default defineComponent({
     })
 
 
+    // 下一首点击事件
+    const nextMusic = ()=>{
+      // 先暂停当前歌曲
+      if(isPlay.value){
+        playMusic()
+      }
+      store.dispatch('playMusic',288838)
+    }
+
+    // 上一首点击事件
+    const backMusic =()=>{
+      if(isPlay.value){
+        playMusic()
+      }
+      store.dispatch('playMusic',1501212275)
+    }
+
+
     return{
       showLogin,
       login,
@@ -257,7 +282,9 @@ export default defineComponent({
       myAudio,
       isPlay,
       myProgress,
-      currentTime
+      currentTime,
+      nextMusic,
+      backMusic
     }
   }
 })

@@ -65,6 +65,7 @@ export default defineComponent({
     margin-top: 8px;
     color: #373737;
     font-size: 14px;
+    word-break: break-all;
     &:hover{
         color: black;
         cursor: pointer;
@@ -104,11 +105,6 @@ export default defineComponent({
     opacity: 0;
     transition: all .8s;
 }
-// .picbox{
-//     border: 1px solid red;
-//     // padding-bottom: -100%;
-//     // overflow: hidden;
-// }
 .picbox:hover .playicon{
     opacity: 1;
 }
