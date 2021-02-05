@@ -1,6 +1,6 @@
 <template>
     <div class="swiper-container">
-        <ul class="swiper-main start">
+        <ul class="swiper-main " ref="imageContainer">
             <li v-for="(item) in imageList" 
                 :key="item.targetId" 
                 :ref="setItemRef">
@@ -18,7 +18,7 @@
     </ul>
 </template>
 <script lang="ts">
-import {ref, defineComponent, onMounted} from 'vue'
+import {ref, defineComponent, onMounted, onBeforeUnmount, onUpdated} from 'vue'
 export default defineComponent({
     name:'Swiper',
     props:['imageList','autoplay'],
@@ -26,7 +26,10 @@ export default defineComponent({
         const itemRefs: any[] = []
 
         const activeIndex = ref(0)
+        const imageContainer = ref(null)
         
+        let timer = null
+
         const setItemRef = el => {
             if(itemRefs.length<props.imageList.length){
                 itemRefs.push(el)
@@ -34,8 +37,7 @@ export default defineComponent({
         }
         
         const next = (targetIndex) =>{
-            const dom = document.querySelector('.swiper-main')
-            dom.classList.remove('start')
+            clearInterval(timer)
             
             const leftIndex = targetIndex-1 >= 0 ? targetIndex-1:itemRefs.length-1
             const rightIndex = targetIndex+1 <= itemRefs.length-1 ? targetIndex+1:0
@@ -53,10 +55,15 @@ export default defineComponent({
             }
             
             activeIndex.value = targetIndex
+            
+            if(props.autoplay){
+                timer = setInterval(()=>{
+                    next(activeIndex.value)
+                },5000)
+            }
         }
         const back = (targetIndex) =>{
-            const dom = document.querySelector('.swiper-main')
-            dom.classList.remove('start')
+            clearInterval(timer)
 
             const leftIndex = targetIndex-1 >= 0 ? targetIndex-1:itemRefs.length-1
             const rightIndex = targetIndex+1 <= itemRefs.length-1 ? targetIndex+1:0
@@ -73,6 +80,11 @@ export default defineComponent({
                 targetIndex--
             }
             activeIndex.value = targetIndex
+            if(props.autoplay){
+                timer = setInterval(()=>{
+                    next(activeIndex.value)
+                },5000)
+            }
         }
         const enter = (index)=>{
             if(index>activeIndex.value){
@@ -86,10 +98,23 @@ export default defineComponent({
 
         onMounted(()=>{
             if(props.autoplay){
-                setInterval(()=>{
+                timer = setInterval(()=>{
                     next(activeIndex.value)
                 },5000)
             }
+        })
+
+        let flag = true
+        onUpdated(()=>{
+            if(!flag) return
+            itemRefs[0].classList.add('start-base')
+            itemRefs[1].classList.add('start-right')
+            itemRefs[itemRefs.length-1].classList.add('start-left')
+            flag = false
+        })
+
+        onBeforeUnmount(()=>{
+            clearInterval(timer)
         })
 
         return {
@@ -97,7 +122,8 @@ export default defineComponent({
             setItemRef,
             next,
             back,
-            enter
+            enter,
+            imageContainer
         }
     }
 })
@@ -116,6 +142,22 @@ export default defineComponent({
     margin-left: -46px;
     height: 200px;
     position: relative;
+    .start-left{
+        opacity: 1;
+        z-index: 99;
+        left: 0;
+        transform: translateX(0) scale(.83);
+    }
+    .start-base{
+        z-index: 100;
+        opacity: 1;
+    }
+    .start-right{
+        opacity: 1;
+        z-index: 99;
+        left: calc(100% - 540px);
+        transform: translateX(0) scale(.83);
+    }
     li {
         border-radius: 9px;
         overflow: hidden;
@@ -268,22 +310,6 @@ export default defineComponent({
             transform: translateX(-50%);
         }
     }
-}
-.start li:last-child{
-    opacity: 1;
-    z-index: 99;
-    left: 0;
-    transform: translateX(0) scale(.83);
-}
-.start li:nth-child(1){
-    z-index: 100;
-    opacity: 1;
-}
-.start li:nth-child(2){
-    opacity: 1;
-    z-index: 99;
-    left: calc(100% - 540px);
-    transform: translateX(0) scale(.83);
 }
 .btn{
     position: absolute;

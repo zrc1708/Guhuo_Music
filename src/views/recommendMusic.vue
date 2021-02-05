@@ -8,7 +8,8 @@
                     :key="item.id"
                     :imageSrc="item.picUrl"
                     :text="item.name"
-                    :playcount="item.playcount"></Mediabox>
+                    :playcount="item.playcount"
+                    :id="item.id"></Mediabox>
     </div>
     <SmallTitle title="最新音乐"></SmallTitle>
     <div class="newMusic-box">
@@ -60,7 +61,6 @@ export default defineComponent({
             const res: any = await request('/top/song?type=0')
             res.data.splice(11,res.data.length-12)
             state.newMusicList = res.data
-            // console.log(state.newMusicList);
         }
 
         onMounted(()=>{

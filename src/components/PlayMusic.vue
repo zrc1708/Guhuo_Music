@@ -20,7 +20,6 @@
                         <span>{{$store.state.musicObj.ar.map(item=>item.name).join('/')}}</span>
                     </span>
                 </div>
-                <!-- <textarea name="" id="" cols="40" rows="20" v-model="$store.state.musicLrc.lrc.lyric"></textarea> -->
                 <div class="lrc-container" ref="lrcContainer" v-if="lrcArr[0]">
                     <div class="sentence" 
                         v-for="(item,index) in lrcArr" 
@@ -38,7 +37,6 @@
 <script lang="ts">
 import { defineComponent, onMounted, computed, reactive, ref, toRefs, watch } from 'vue'
 import { useStore } from "vuex";
-import moment from 'moment'
 
 export default defineComponent({
     name:'PlayMusic',
@@ -61,7 +59,6 @@ export default defineComponent({
                 const world = item.replace(/^\[\S*\]/,'')
                 let arr = []
                 let second = 0
-                // console.log(time[1])
                 if(time){
                     arr = time[1].split(':')
                     if(arr.length==2){
@@ -172,7 +169,6 @@ export default defineComponent({
     max-width: 850px;
     height: 430px;
     margin: 0 auto;
-    // background-color: pink;
     display: flex;
     overflow: hidden;
     .music-picbox{

@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory,createWebHistory, RouteRecordRaw } f
 import explorMusic from '../views/explorMusic.vue'
 import recommendMusic from '../views/recommendMusic.vue'
 import songlist from '../views/songlist.vue'
+import songSheetDetail from '../views/songSheetDetail.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -17,6 +18,10 @@ const routes: Array<RouteRecordRaw> = [
       {path:'/explormusic/recommendmusic',component:recommendMusic},
       {path:'/explormusic/songlist',component:songlist}
     ]
+  },
+  {
+    path: '/songsheetdetail',
+    component:songSheetDetail,
   }
 ]
 

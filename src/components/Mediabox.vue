@@ -4,7 +4,7 @@
             <img class="pic" :src="require('../assets/recommend.png')" alt="">
             <span class="day">{{day}}</span>
         </div>
-        <div class="relative picbox" v-if="!isRecommend">
+        <div class="relative picbox" @click="picClick" v-if="!isRecommend">
             <img class="pic" :src="imageSrc+`?param=200y200`" alt="">
             <i class="playicon iconfont icon-play-full"></i>
             <span class="playconut"><i class="iconfont icon-bofang"></i>{{playCount}}</span>
@@ -14,6 +14,8 @@
 </template>
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 export default defineComponent({
     name:'Mediabox',
     props:{
@@ -22,7 +24,10 @@ export default defineComponent({
         },
         imageSrc:{},
         text:{},
-        playcount:{}
+        playcount:{},
+        id:{
+            type:Number
+        }
     },
     setup(props){
         const date = new Date()
@@ -40,10 +45,21 @@ export default defineComponent({
                 return ans
             }
         })
-        
+
+        const router = useRouter()
+        const picClick = ()=>{
+            router.push({
+                path:'/songsheetdetail',
+                query:{
+                    id: props.id
+                }
+            })
+        }
+
         return {
             day,
-            playCount
+            playCount,
+            picClick
         }
     }
 })

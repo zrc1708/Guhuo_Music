@@ -2,9 +2,9 @@
     <div class="newMusic-container">
         <div class="imgcontainer">
             <img :src="item.album.picUrl" alt="">
-            <i class="iconfont icon-play-full"></i>
+            <i class="iconfont icon-play-full" @click="musicClick"></i>
         </div>
-        <div class="text-container">
+        <div class="text-container" @dblclick="musicClick">
             <span class="music-name">
                 <span class="main-name">{{item.name}}</span>
                 <span class="side-name">{{item.alias[0]&&('('+item.alias[0]+')')}}</span>
@@ -15,14 +15,23 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { useStore } from 'vuex'
+
 export default defineComponent({
     name:'NewMusicbox',
     props:['item'],
     setup(props){
         const authorArr = props.item.artists.map(item=>item.name).join('/')
         
+        const store = useStore()
+
+        const musicClick = ()=>{
+            store.dispatch('playMusic',props.item.id)
+        }
+
         return {
-            authorArr
+            authorArr,
+            musicClick
         }
     }
 })

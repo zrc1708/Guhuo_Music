@@ -57,7 +57,7 @@
       <audio v-show="false" class="myAudio" ref="myAudio" :src="$store.state.musicObj&&$store.state.musicUrl.url"></audio>
       <div class="music-detail" v-if="$store.state.musicObj">
         <img :src="$store.state.musicObj.al.picUrl" alt="">
-        <div class="img-mask" @click="maskClick">
+        <div class="img-mask" :class="[showPlayMusic?'hide':'open']" @click="maskClick">
           <i class="iconfont icon-jiantou"></i>
           <i class="iconfont icon-jiantou"></i>
         </div>
@@ -244,6 +244,7 @@ export default defineComponent({
     onMounted(()=>{
       const point: HTMLElement = document.querySelector('.progress-point')
       point.addEventListener('mousedown',(e)=>{
+        if(!store.state.musicObj) return
         x = e.clientX;
         document.addEventListener('mousemove', mousemove)
         document.addEventListener('mouseup', mouseup)
@@ -514,6 +515,8 @@ export default defineComponent({
         position: absolute;
         margin: 6px;
       }
+    }
+    .open{
       i:nth-child(1){
         top: 0;
         right: 0;
@@ -523,6 +526,18 @@ export default defineComponent({
         bottom: 0;
         left: 0;
         transform: rotate(-135deg);
+      }
+    }
+    .hide{
+      i:nth-child(1){
+        top: 0;
+        right: 0;
+        transform: rotate(225deg);
+      }
+      i:nth-child(2){
+        bottom: 0;
+        left: 0;
+        transform: rotate(45deg);
       }
     }
     .music-text{
