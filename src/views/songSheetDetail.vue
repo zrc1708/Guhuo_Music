@@ -17,7 +17,7 @@
                         <i class="iconfont icon-play-full"></i>
                         <span>播放全部</span>
                     </div>
-                    <div class="addAll">
+                    <div class="addAll" title="添加全部到播放列表">
                         <i class="iconfont icon-jia"></i>
                     </div>
                 </div>
@@ -31,11 +31,48 @@
                 <span>歌曲：<span class="my-text">{{state.musics.length}}</span></span>
                 <span>播放：<span class="my-text">{{state.playCount}}</span></span>
             </div>
+            <div class="desc-container">
+                <div class="desc">
+                    <span>简介：</span>
+                    <span :class="[showDesc?'show':'hide']" v-html="state.description"></span>
+                </div>
+                <div class="desc-btn" @click="showdesc"></div>
+            </div>
         </div>
     </div>
+    <ul class="navul">
+        <li class="active">歌曲列表</li>
+        <li>评论</li>
+    </ul>
+    <table class="my-table">
+        <thead>
+            <tr class="my-headtr">
+                <th></th>
+                <th>音乐标题</th>
+                <th>歌手</th>
+                <th>专辑</th>
+                <th>时长</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="my-bodytr" 
+                v-for="(item,index) in state.songsList" 
+                :key="index"
+                :class="{'shadow':index%2==0}">
+                <td>{{index}}</td>
+                <td>
+                    <span class="name-container">{{item.name}}</span>
+                    <span class="sidename-container">{{item.alia[0]&&'('+item.alia[0]+')'}}</span>
+                </td>
+                <td><span class="text-container">{{item.ar.map(item=>item.name).join('/')}}</span></td>
+                <td><span class="text-container">{{item.al.name}}</span></td>
+                <td><span class="text-container">{{item.time}}</span></td>
+            </tr>
+        </tbody>
+    </table>
 </template>
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '../../utils/http'
 import moment from 'moment'
@@ -68,10 +105,20 @@ export default defineComponent({
             tags:[],
             musics:[],
             playCount:'',
+            description:'',
+            songsList:[]
         })
+        let trackIds = []
+        const getSheetMusic =async ()=>{
+            const res: any = await request(`/song/detail?ids=${trackIds.join(',')}`)
+            state.songsList = res.songs
+            state.songsList.forEach(item =>{
+                item.time = moment(item.dt).format('mm:ss')
+            })
+            console.log(state.songsList)
+        }
         const getSongSheetDetail =async ()=>{
             const res: any = await request(`/playlist/detail?id=${id}`)
-            console.log(res);
             state.imageSrc = res.playlist.coverImgUrl
             state.name = res.playlist.name
             state.createrImageSrc = res.playlist.creator.avatarUrl
@@ -80,11 +127,21 @@ export default defineComponent({
             state.tags = res.playlist.tags,
             state.musics = res.playlist.trackIds
             state.playCount = getCount(res.playlist.playCount)
+            state.description = res.playlist.description.replace(/\n/g, '<br>')
+            trackIds = res.playlist.trackIds.map(item=>item.id)
+            getSheetMusic()
         }
         getSongSheetDetail()
 
+        const showDesc = ref(false)
+        const showdesc = ()=>{
+            showDesc.value = !showDesc.value
+        }
+
         return {
-            state
+            state,
+            showDesc,
+            showdesc
         }
     }
 })
@@ -94,6 +151,8 @@ export default defineComponent({
     display: flex;
     margin-top: 30px;
     margin-left: 30px;
+    margin-right: 30px;
+    overflow: hidden;
     .coverImage{
         width: 184px;
         height: 184px;
@@ -103,6 +162,7 @@ export default defineComponent({
     }
     .sheetDetail{
         flex: 1;
+        // overflow: hidden;
         .myicon{
             display: inline-block;
             color: #ec4141;
@@ -129,11 +189,13 @@ export default defineComponent({
             display: flex;
             align-items: center;
             img{
+               cursor: pointer;
                width: 24px; 
                height: 24px;
                border-radius: 50%;
             }
             .createrName{
+                cursor: pointer;
                 font-size: 12px;
                 color: #507daf;
                 margin-left: 8px;
@@ -194,7 +256,9 @@ export default defineComponent({
             color: rgb(55, 55, 55);
             span {
                 color: #507daf;
+                cursor: pointer;
                 span{
+                    cursor: default;
                     position: relative;
                     top: -1px;
                     color: #676767;
@@ -210,8 +274,173 @@ export default defineComponent({
             .my-text{
                 color: #676767;
                 margin-right: 12px;
+                cursor: default;
             }
         }
+        .desc-container{
+            position: relative;
+        }
+        .desc{
+            font-size: 13px;
+            color: rgb(55, 55, 55);
+            margin-top: 1px;
+            padding-right: 30px;
+            position: relative;
+            overflow: hidden;
+            padding-right: 40px;
+            span:nth-child(1){
+                width: 16px;
+                line-height: 26px;
+            }
+            .hide{
+                position: absolute;
+                top: 0;
+                left: 39px;
+                width: calc(100% - 79px);
+                color: #676767;
+                line-height: 26px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .show{
+                color: #676767;
+                line-height: 26px;
+            }
+        }
+        .desc-btn{
+            cursor: pointer;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0px;
+            height: 0px;
+            border-top: 8px solid #999999;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 6px solid transparent;
+        }
     }
+}
+.navul{
+    display: flex;
+    align-items: center;
+    margin-top: 32px;
+    margin-left: 30px;
+    padding-bottom: 15px;
+    li{
+        margin-right: 24px;
+        cursor: pointer;
+        color: rgb(55, 55, 55);
+        font-size: 14px;
+        &:hover{
+            color: black;
+        }
+    }
+    .active{
+        font-weight: bold;
+        font-size: 14px;
+        color: #373737;
+        position: relative;
+        &::after{
+            content: '';
+            display: block;
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 3px;
+            background-color: #ec4141;
+        }
+    }
+}
+.my-table{
+    width: 100%;
+    padding: 0 30px;
+}
+.my-headtr{
+    display: flex;
+    th{
+        text-align: left;
+        font-weight: lighter;
+        font-size: 14px;
+        color: #9f9f9f;
+        height: 34px;
+        line-height: 34px;
+    }
+    th:nth-child(1){
+        width: 50px;
+    }
+    th:nth-child(2){
+        flex: 19;
+    }
+    th:nth-child(3){
+        flex: 9;
+    }
+    th:nth-child(4){
+        flex: 12;
+    }
+    th:nth-child(5){
+        flex: 5;
+    }
+}
+.my-bodytr{
+    display: flex;
+    td{
+        text-align: left;
+        font-size: 14px;
+        height: 34px;
+        line-height: 34px;
+        position: relative;
+        overflow: hidden;
+        .text-container{
+            position: absolute;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    td:nth-child(1){
+        width: 50px;
+        color: #9f9f9f;
+    }
+    td:nth-child(2){
+        flex: 19;
+        width: 0;
+        color: #363636;
+        word-break: break-all;
+        overflow: hidden;
+        display: flex;
+
+        .name-container{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sidename-container{
+            flex: 1;
+            color: #8f8f8f;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    td:nth-child(3){
+        flex: 9;
+        color: #656565;
+    }
+    td:nth-child(4){
+        flex: 12;
+        color: #656565;
+    }
+    td:nth-child(5){
+        flex: 5;
+        color: #9f9f9f;
+    }
+}
+.shadow{
+    background-color: #f9f9f9;
 }
 </style>
