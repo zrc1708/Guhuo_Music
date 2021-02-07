@@ -49,6 +49,8 @@
     <div class="content">
       <router-view></router-view>
     </div>
+    <!-- 播放列表组件 -->
+    <PlayList class="my-playList" v-show="showPlayList"></PlayList>
   </div>
   <!-- 音乐播放详情组件 -->
   <PlayMusic :show="showPlayMusic" v-if="$store.state.musicObj"></PlayMusic>
@@ -85,6 +87,8 @@
           <span class="time end-time">{{$store.state.musicObj?$store.state.musicObj.lastTime:'00:00'}}</span>
         </div>
       </div>
+      <!-- 播放列表切换按钮 -->
+      <i class="play-list iconfont icon-bofangliebiao" @click="playListClick"></i>
   </div>
 </div>
 </template>
@@ -96,11 +100,12 @@ import Loginbox from './components/Loginbox.vue'
 import PlayMusic from './components/PlayMusic.vue'
 import { useStore } from "vuex";
 import moment from 'moment'
+import PlayList from './components/plsyList.vue'
 
 export default defineComponent({
   name:'App',
   components:{
-    Loginbox,PlayMusic
+    Loginbox,PlayMusic,PlayList
   },
   setup(){
     const showLogin = ref(false)
@@ -269,6 +274,11 @@ export default defineComponent({
       store.dispatch('playMusic',1501212275)
     }
 
+    // 播放列表的显示控制
+    const showPlayList = ref(true)
+    const playListClick = ()=>{
+      showPlayList.value = !showPlayList.value
+    }
 
     return{
       showLogin,
@@ -285,7 +295,9 @@ export default defineComponent({
       myProgress,
       currentTime,
       nextMusic,
-      backMusic
+      backMusic,
+      playListClick,
+      showPlayList
     }
   }
 })
@@ -390,6 +402,7 @@ export default defineComponent({
   flex: 1;
   display: flex;
   overflow-y: auto;
+  position: relative;
 
   .asidenav{
     width: 200px;
@@ -476,6 +489,15 @@ export default defineComponent({
 }
 .content{
   flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+      width : 5px;
+      height: 1px;
+  }
+  &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      background: rgb(224, 224, 224);
+  }
 }
 .music-control-box{
   height: 72px;
@@ -579,6 +601,14 @@ export default defineComponent({
     }
     
   }
+  .play-list{
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 25px;
+    cursor: pointer;
+  }
 }
 .music-control{
   width: 500px;
@@ -659,5 +689,22 @@ export default defineComponent({
   box-sizing: content-box;
   background-color: #ec4141;
   border: 3px solid #ec4141;
+}
+.my-playList{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100%;
+  border-left: 1px solid #e1e1e1;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+        width : 5px; 
+        height: 1px;
+    }
+    &::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        background: rgb(224, 224, 224);
+    }
 }
 </style>

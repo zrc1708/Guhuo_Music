@@ -13,11 +13,11 @@
             </div>
             <div class="btns-container">
                 <div class="btn-play">
-                    <div class="playAll">
+                    <div class="playAll" @click="playAll">
                         <i class="iconfont icon-play-full"></i>
                         <span>播放全部</span>
                     </div>
-                    <div class="addAll" title="添加全部到播放列表">
+                    <div class="addAll" @click="addAll" title="添加全部到播放列表">
                         <i class="iconfont icon-jia"></i>
                     </div>
                 </div>
@@ -36,7 +36,7 @@
                     <span>简介：</span>
                     <span :class="[showDesc?'show':'hide']" v-html="state.description"></span>
                 </div>
-                <div class="desc-btn" @click="showdesc"></div>
+                <div class="desc-btn" :class="[showDesc?'top-btn':'']" @click="showdesc"></div>
             </div>
         </div>
     </div>
@@ -58,15 +58,20 @@
             <tr class="my-bodytr" 
                 v-for="(item,index) in state.songsList" 
                 :key="index"
-                :class="{'shadow':index%2==0}">
-                <td>{{index}}</td>
+                :class="[{'shadow':index%2==0},{'choosed':index==choosedIndex}]"
+                @click="musiTrClick(index)"
+                @dblclick="musiTrDbClick(item)">
+                <td>
+                    <i class="iconfont icon-laba1" v-if="$store.state.musicObj&&item.id==$store.state.musicObj.id"></i>
+                    <span v-else>{{index+1>=10 ?index+1:'0'+(index+1)}}</span>
+                </td>
                 <td>
                     <span class="name-container">{{item.name}}</span>
                     <span class="sidename-container">{{item.alia[0]&&'('+item.alia[0]+')'}}</span>
                 </td>
                 <td><span class="text-container">{{item.ar.map(item=>item.name).join('/')}}</span></td>
                 <td><span class="text-container">{{item.al.name}}</span></td>
-                <td><span class="text-container">{{item.time}}</span></td>
+                <td><span class="text-container">{{item.lastTime}}</span></td>
             </tr>
         </tbody>
     </table>
@@ -76,6 +81,7 @@ import { defineComponent, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '../../utils/http'
 import moment from 'moment'
+import { useStore } from 'vuex'
 
 export default defineComponent({
     name:'songSheetDetail',
@@ -113,9 +119,8 @@ export default defineComponent({
             const res: any = await request(`/song/detail?ids=${trackIds.join(',')}`)
             state.songsList = res.songs
             state.songsList.forEach(item =>{
-                item.time = moment(item.dt).format('mm:ss')
+                item.lastTime = moment(item.dt).format('mm:ss')
             })
-            console.log(state.songsList)
         }
         const getSongSheetDetail =async ()=>{
             const res: any = await request(`/playlist/detail?id=${id}`)
@@ -138,10 +143,31 @@ export default defineComponent({
             showDesc.value = !showDesc.value
         }
 
+        const choosedIndex = ref(null)
+        const musiTrClick = (index)=>{
+            choosedIndex.value = index
+        }
+        const store = useStore()
+        const musiTrDbClick = (item)=>{
+            store.dispatch('playMusic',item.id)
+        }
+
+        const playAll = ()=>{
+            store.commit('setPlayList', state.songsList)
+        }
+        const addAll = ()=>{
+            store.commit('addPlayList', state.songsList)
+        }
+
         return {
             state,
             showDesc,
-            showdesc
+            showdesc,
+            choosedIndex,
+            musiTrClick,
+            musiTrDbClick,
+            playAll,
+            addAll
         }
     }
 })
@@ -320,6 +346,10 @@ export default defineComponent({
             border-bottom: 8px solid transparent;
             border-left: 6px solid transparent;
         }
+        .top-btn{
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid #999999;
+        }
     }
 }
 .navul{
@@ -385,8 +415,17 @@ export default defineComponent({
         flex: 5;
     }
 }
+.shadow{
+    background-color: #f9f9f9;
+}
+.choosed{
+    background-color: #e5e5e5!important;
+}
 .my-bodytr{
     display: flex;
+    &:hover{
+        background-color: #f2f2f2;
+    }
     td{
         text-align: left;
         font-size: 14px;
@@ -395,6 +434,7 @@ export default defineComponent({
         position: relative;
         overflow: hidden;
         .text-container{
+            padding-right: 10px;
             position: absolute;
             width: 100%;
             overflow: hidden;
@@ -405,14 +445,20 @@ export default defineComponent({
     td:nth-child(1){
         width: 50px;
         color: #9f9f9f;
+        padding-right: 20px;
+        text-align: right;
+        i{
+            color: rgb(215, 53, 53);
+        }
     }
     td:nth-child(2){
-        flex: 19;
+        flex: 18;
         width: 0;
         color: #363636;
         word-break: break-all;
         overflow: hidden;
         display: flex;
+        padding-right: 10px;
 
         .name-container{
             overflow: hidden;
@@ -439,8 +485,5 @@ export default defineComponent({
         flex: 5;
         color: #9f9f9f;
     }
-}
-.shadow{
-    background-color: #f9f9f9;
 }
 </style>

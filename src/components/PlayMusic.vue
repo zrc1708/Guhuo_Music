@@ -11,7 +11,7 @@
             </div>
             <div class="music-lrcbox">
                 <div class="title">{{$store.state.musicObj.name}}</div>
-                <div class="discribe">{{$store.state.musicObj.alia[0]&&$store.state.musicObj.alia[0]}}</div>
+                <div class="discribe" v-if="$store.state.musicObj.alia[0]">{{$store.state.musicObj.alia[0]}}</div>
                 <div class="detail">
                     <span class="group">专辑：
                         <span>{{$store.state.musicObj.al.name}}</span>
@@ -27,8 +27,8 @@
                         {{item.world}}
                     </div>
                 </div>
-                <div class="lrc-container" v-else>
-                    暂无歌词
+                <div class="lrc-container nolrc" v-else>
+                    纯音乐，请您欣赏
                 </div>
             </div>
         </div>
@@ -50,7 +50,8 @@ export default defineComponent({
         })
 
         // 获取歌词
-        state.lrcArr = computed(() => {
+        state.lrcArr = computed<any[]>(() => {
+            if(!store.state.musicLrc.lrc) return []
             const arr = store.state.musicLrc.lrc.lyric.split('\n')
             const ans = []
             let index = 0
@@ -115,7 +116,7 @@ export default defineComponent({
         const lrcContainer = ref(null)
         let lrcTimer = null
         watch(()=>store.state.isPlay,(val)=>{
-            if(val){
+            if(val&&store.state.musicLrc.lrc){
                 lrcTimer = setInterval(()=>{
                     let maxIndex = 0
                     // 重置歌词颜色
@@ -235,9 +236,9 @@ export default defineComponent({
             font-size: 14px;
             color: rgb(51, 51, 51);
             margin-top: 11px;
-            margin-bottom: 16px;
         }
         .detail{
+            margin-top: 16px;
             font-size: 12px;
             color: #9a9a9a;
             .group{
@@ -279,5 +280,12 @@ export default defineComponent({
         font-size: 14px;
         margin-bottom: 16px;
     }
+}
+.nolrc{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333333;
 }
 </style>
