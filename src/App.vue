@@ -7,8 +7,8 @@
       <a href="#">姑获云音乐</a>
     </div>
     <div class="header-control">
-      <span class="icon-box left iconfont icon-left"></span>
-      <span class="icon-box right iconfont icon-right"></span>
+      <span class="icon-box left iconfont icon-left" @click="back"></span>
+      <span class="icon-box right iconfont icon-right" @click="forward"></span>
       <div class="search-box iconfont icon-sousuo">
         <input type="text" placeholder="搜索">
       </div>
@@ -77,6 +77,7 @@
           <i class="iconfont" :class="[isPlay?'icon-pause-full':'icon-play-full']" @click="playMusic()"></i>
           <i class="iconfont icon-xiayishou" @click="nextMusic"></i>
         </div>
+        <!-- 音乐进度条 -->
         <div class="music-progress">
           <span class="time start-time">{{currentTime}}</span>
           <div class="progress">
@@ -84,7 +85,7 @@
               <i class="progress-point"></i>
             </div>
           </div>
-          <span class="time end-time">{{$store.state.musicObj?$store.state.musicObj.lastTime:'00:00'}}</span>
+          <span class="time end-time">{{endTime}}</span>
         </div>
       </div>
       <!-- 播放列表切换按钮 -->
@@ -94,7 +95,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch} from 'vue'
+import { computed, defineComponent, onMounted, ref, watch} from 'vue'
 import request from '../utils/http'
 import Loginbox from './components/Loginbox.vue'
 import PlayMusic from './components/PlayMusic.vue'
@@ -142,10 +143,18 @@ export default defineComponent({
         localStorage.setItem('phone',user.phone)
         localStorage.setItem('username',res.profile.nickname)
         localStorage.setItem('avatarUrl',res.profile.avatarUrl)
-        store.commit('setUser', res.profile)
+        localStorage.setItem('userId',res.profile.userId)
         showLogin.value = false
       }
     }
+
+    // 设置音乐结束时间（vip音乐设置试听结束时间）
+    const endTime = ref('00:00')
+    watch(()=>store.state.musicLrc,()=>{
+      setTimeout(()=>{
+        endTime.value = moment(myAudio.value.duration*1000).format('mm:ss')
+      },300)
+    })
 
     // 音乐专辑点击事件
     const maskClick = ()=>{
@@ -157,8 +166,8 @@ export default defineComponent({
     const pointMove = (flag)=>{
       if(flag){
         moveTime = setInterval(()=>{
-          const alltime = store.state.musicObj.dt
-          const percent = myAudio.value.currentTime*1000 / alltime
+          const alltime = myAudio.value.duration
+          const percent = myAudio.value.currentTime / alltime
           const length = Math.ceil(392 * percent)
           currentTime.value = moment(myAudio.value.currentTime*1000).format('mm:ss')
           myProgress.value.style.width = length+'px'
@@ -175,8 +184,8 @@ export default defineComponent({
       // 若为定点播放，先设置时间，调整进度条位置
       if( playTime ){
         myAudio.value.currentTime = playTime
-        const alltime = store.state.musicObj.dt
-        const percent = myAudio.value.currentTime*1000 / alltime
+        const alltime = myAudio.value.duration
+        const percent = myAudio.value.currentTime / alltime
         const length = Math.ceil(392 * percent)
         myProgress.value.style.width = length+'px'
       }
@@ -209,20 +218,13 @@ export default defineComponent({
       }
     }
 
-    // 检测到音乐资源后自动进行播放
-    watch(()=>store.state.musicLrc,(val)=>{
-      setTimeout(()=>{
-        playMusic()  
-      },50)
-    })
-
     // 根据进度条进度播放
     const playAtAnyTime = ()=>{
       const width = myProgress.value.style.width.replace('px','')
       const percent = Number(width)/392
-      const alltime = store.state.musicObj.dt
-      let playtime = Math.floor(alltime*percent/1000)
-      playtime = playtime > alltime/1000 ? alltime/1000 : playtime
+      const alltime = myAudio.value.duration
+      let playtime = Math.floor(alltime*percent)
+      playtime = playtime > alltime ? alltime : playtime
       if(isPlay.value){
         playMusic(playtime)
       }else{
@@ -234,8 +236,6 @@ export default defineComponent({
     let x = 0
     let newx = 0
     function mousemove(e){
-      // 停止进度条自动移动防止冲突
-      pointMove(false)
       newx = e.clientX;
       const width = myProgress.value.style.width.replace('px','')
       myProgress.value.style.width = Number(width)+newx-x+'px'
@@ -250,16 +250,27 @@ export default defineComponent({
       const point: HTMLElement = document.querySelector('.progress-point')
       point.addEventListener('mousedown',(e)=>{
         if(!store.state.musicObj) return
+        // 停止进度条自动移动防止冲突
+        pointMove(false)
         x = e.clientX;
         document.addEventListener('mousemove', mousemove)
         document.addEventListener('mouseup', mouseup)
       })
     })
 
+    // 检测到音乐资源后自动进行播放
+    watch(()=>store.state.musicLrc,(val)=>{
+      // 先暂停当前歌曲，清除定时器
+      if(isPlay.value){
+        playMusic()
+      }
+      setTimeout(()=>{
+        playMusic()  
+      },50)
+    })
 
     // 下一首点击事件
     const nextMusic = ()=>{
-      // 先暂停当前歌曲
       if(isPlay.value){
         playMusic()
       }
@@ -275,9 +286,17 @@ export default defineComponent({
     }
 
     // 播放列表的显示控制
-    const showPlayList = ref(true)
+    const showPlayList = ref(false)
     const playListClick = ()=>{
       showPlayList.value = !showPlayList.value
+    }
+
+    // 顶部的前进、后退事件
+    const back = ()=>{
+      history.back()
+    }
+    const forward = ()=>{
+      history.forward()
     }
 
     return{
@@ -289,6 +308,7 @@ export default defineComponent({
       avatarUrl,
       showPlayMusic,
       maskClick,
+      endTime,
       playMusic,
       myAudio,
       isPlay,
@@ -297,7 +317,9 @@ export default defineComponent({
       nextMusic,
       backMusic,
       playListClick,
-      showPlayList
+      showPlayList,
+      back,
+      forward
     }
   }
 })
@@ -335,6 +357,7 @@ export default defineComponent({
     align-items: center;
     flex: 1;
     .icon-box{
+      cursor: pointer;
       display: inline-block;
       width: 24px;
       height: 24px;

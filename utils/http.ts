@@ -6,7 +6,6 @@ axios.defaults.baseURL = '/api'
 type Method = 'get' | 'post' | 'put' | 'delete'
 
 const request = (url, data={}, method: Method ="get")=>{
-    const cookie = localStorage.getItem('cookie')||''
     return new Promise((resolve,reject)=>{
         axios({
             method:method,

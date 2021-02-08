@@ -154,6 +154,9 @@ export default defineComponent({
 
         const playAll = ()=>{
             store.commit('setPlayList', state.songsList)
+            if(state.songsList[0]){
+                store.dispatch('playMusic',state.songsList[0].id)
+            }
         }
         const addAll = ()=>{
             store.commit('addPlayList', state.songsList)

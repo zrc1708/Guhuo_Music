@@ -1,16 +1,20 @@
 <template>
     <div class="playList-container">
         <div class="btn-container">
-            <div class="choosed">播放列表</div>
-            <div>历史记录</div>
+            <div :class="{'choosed':type=='playList'}" @click="switchTable">播放列表</div>
+            <div :class="{'choosed':type=='history'}" @click="switchTable">历史记录</div>
         </div>
-        <div>
-            
+        <div class="detail">
+            <div>总{{showList.length}}首</div>
+            <div v-if="type=='playList'" @click="deletePlayList">
+                <i class="iconfont icon-lajitong"></i>
+                <span>清空</span>
+            </div>
         </div>
         <table class="my-table">
             <tbody>
                 <tr class="my-bodytr" 
-                    v-for="(item,index) in $store.state.playList" 
+                    v-for="(item,index) in showList" 
                     :key="index"
                     :class="[
                         {'shadow':index%2==0},
@@ -34,25 +38,69 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, watch, reactive, ref, toRefs } from 'vue'
 import { useStore } from 'vuex'
+import request from '../../utils/http'
+import moment from 'moment'
 
 export default defineComponent({
     name:'PlayList',
     setup(){
+        const state = reactive({
+            showList:[]
+        })
+        const type = ref('playList')
+
         const choosedIndex = ref(null)
         const musiTrClick = (index)=>{
             choosedIndex.value = index
         }
         const store = useStore()
         const musiTrDbClick = (item)=>{
-            store.dispatch('playMusicInList',item.id)
+            store.dispatch('playMusic',item.id)
+        }
+
+        const switchTable = async ()=>{
+            type.value = type.value=='playList'?'history':'playList'
+        }
+        
+        watch(()=>store.state.playList ,(val)=>{
+            if(type.value=='playList'){
+                state.showList = val
+            }
+        },{
+            immediate:true
+        })
+
+        watch(type ,async (val)=>{
+            if(val=='playList'){
+                state.showList = store.state.playList
+            }else{
+                const userId = localStorage.getItem('userId')
+                const res: any = await request(`/user/record?uid=${userId}&type=1`)
+                const arr = []
+                res.weekData.forEach(item => {
+                    item.song.lastTime = moment(item.song.dt).format('mm:ss')
+                    arr.push(item.song)
+                });
+                state.showList = arr
+            }
+        },{
+            immediate:true
+        })
+
+        const deletePlayList = ()=>{
+            store.commit('clearPlayList',[])
         }
 
         return {
             choosedIndex,
             musiTrClick,
-            musiTrDbClick
+            musiTrDbClick,
+            switchTable,
+            type,
+            ...toRefs(state),
+            deletePlayList
         }
     }
 })
@@ -84,6 +132,33 @@ export default defineComponent({
     .choosed{
         background-color: #bbbbbb!important;
         color: white;
+    }
+}
+.detail{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 23px;
+    div:nth-child(1){
+        color: #cfcfcf;
+        font-size: 14px;
+        margin-left: 20px;
+    }
+    div:nth-child(2){
+        color: #8f8f8f;
+        display: flex;
+        align-items: center;
+        margin-right: 37px;
+        cursor: pointer;
+        i{
+            color: #666666;
+            font-size: 20px;
+            margin-right: 5px;
+        }
+        span{
+            color: #373737;
+            font-size: 13px;
+        }
     }
 }
 .my-table{
@@ -144,7 +219,7 @@ export default defineComponent({
         }
         .sidename-container{
             flex: 1;
-            color: #8f8f8f;
+            color: #cfcfcf;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;

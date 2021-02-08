@@ -116,6 +116,7 @@ export default defineComponent({
         const lrcContainer = ref(null)
         let lrcTimer = null
         watch(()=>store.state.isPlay,(val)=>{
+            // console.log(store.state.musicLrc.lrc)
             if(val&&store.state.musicLrc.lrc){
                 lrcTimer = setInterval(()=>{
                     let maxIndex = 0

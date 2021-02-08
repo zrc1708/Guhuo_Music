@@ -1,13 +1,16 @@
 <template>
     <div class="media-box">
-        <div class="relative" v-if="isRecommend">
+        <div class="relative picbox" @click="daliyRecClick" v-if="isRecommend">
             <img class="pic" :src="require('../assets/recommend.png')" alt="">
+            <i class="playicon iconfont icon-play-full"></i>
             <span class="day">{{day}}</span>
         </div>
         <div class="relative picbox" @click="picClick" v-if="!isRecommend">
             <img class="pic" :src="imageSrc+`?param=200y200`" alt="">
             <i class="playicon iconfont icon-play-full"></i>
-            <span class="playconut"><i class="iconfont icon-bofang"></i>{{playCount}}</span>
+            <span class="playconut">
+                <i class="iconfont icon-bofang"></i>{{playCount}}
+            </span>
         </div>
         <span class="text">{{text}}</span>
     </div>
@@ -55,11 +58,17 @@ export default defineComponent({
                 }
             })
         }
+        const daliyRecClick = ()=>{
+            router.push({
+                path:'/dailyRecommend'
+            })
+        }
 
         return {
             day,
             playCount,
-            picClick
+            picClick,
+            daliyRecClick
         }
     }
 })
@@ -74,7 +83,6 @@ export default defineComponent({
 }
 .pic{
     width: 100%;
-    border-radius: 5px;
     cursor: pointer;
 }
 .text{
@@ -92,6 +100,8 @@ export default defineComponent({
 }
 .relative{
     position: relative;
+    border-radius: 5px;
+    overflow: hidden;
     img{
         display: block;
     }
@@ -103,6 +113,7 @@ export default defineComponent({
     transform: translate(-50%,-40%);
     color: white;
     font-size: 26px;
+    cursor: pointer;
 }
 .playicon{
     position: absolute;
@@ -127,11 +138,17 @@ export default defineComponent({
 .playconut{
     color: white;
     position: absolute;
+    background: linear-gradient(to bottom,rgba(0, 0, 0, 0.2),transparent);;
     top: 0;
     right: 0;
-    margin-top: 4px;
-    margin-right: 10px;
+    // margin-top: 4px;
+    // margin-right: 10px;
+    width: 100%;
     font-size: 12px;
+    text-align: right;
+    padding-top: 4px;
+    padding-right: 10px;
+    padding-bottom: 20px;
     i{
         font-size: 14px;
     }
