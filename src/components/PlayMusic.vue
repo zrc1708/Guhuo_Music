@@ -20,7 +20,7 @@
                         <span>{{$store.state.musicObj.ar.map(item=>item.name).join('/')}}</span>
                     </span>
                 </div>
-                <div class="lrc-container" ref="lrcContainer" v-if="lrcArr[0]">
+                <div class="lrc-container" ref="lrcContainer" v-if="lrcArr[0]" @mouseenter="enter" @mouseleave="leave">
                     <div class="sentence" 
                         v-for="(item,index) in lrcArr" 
                         :key="index">
@@ -99,9 +99,11 @@ export default defineComponent({
 
         
         // 歌词滚动动画效果
+        let animateFlag = true
         function animate(obj, target) {
             clearInterval(obj.timer)
             obj.timer = setInterval(function () {
+                if(!animateFlag) return
                 let step = (target - obj.scrollTop) / 10
                 step = step > 0 ? Math.ceil(step) : Math.floor(step)
                 if (obj.scrollTop == target) {
@@ -115,33 +117,56 @@ export default defineComponent({
         const {myAudio} = store.state
         const lrcContainer = ref(null)
         let lrcTimer = null
+        let lastMaxIndex = 0
         watch(()=>store.state.isPlay,(val)=>{
-            // console.log(store.state.musicLrc.lrc)
             if(val&&store.state.musicLrc.lrc){
                 lrcTimer = setInterval(()=>{
                     let maxIndex = 0
-                    // 重置歌词颜色
                     for (let i = 0; i < lrcContainer.value.children.length; i++) {
-                        lrcContainer.value.children[i].style = ''
                         if(state.lrcArr[i].second<myAudio.currentTime+0.2){
                             maxIndex = i
                         }
                     }
-                    // 设置匹配的歌词
-                    lrcContainer.value.children[maxIndex].style.color = 'black'
-                    lrcContainer.value.children[maxIndex].style.fontSize = '16px'
-                    lrcContainer.value.children[maxIndex].style.fontWeight = 'bold'
-                    animate(lrcContainer.value,lrcContainer.value.children[maxIndex].offsetTop-121)
+                    if(maxIndex!==lastMaxIndex){
+                        // 重置歌词颜色
+                        lrcContainer.value.children[lastMaxIndex].style = ''
+                        // 设置匹配的歌词样式
+                        lrcContainer.value.children[maxIndex].style.color = 'black'
+                        lrcContainer.value.children[maxIndex].style.fontSize = '16px'
+                        lrcContainer.value.children[maxIndex].style.fontWeight = 'bold'
+                        if(animateFlag){
+                            animate(lrcContainer.value,lrcContainer.value.children[maxIndex].offsetTop-121)
+                        }
+                        lastMaxIndex = maxIndex
+                    }
                 },200)
             }else{
                 clearInterval(lrcTimer)
             }
         })
 
+        // 播放时，歌词若手动滚动，就停止自动滚动5秒
+        let animateFlagTimer = null
+        const scroll = function() {
+            animateFlag = false
+            clearTimeout(animateFlagTimer)
+            animateFlagTimer = setTimeout(()=>{
+                animateFlag = true
+            },5000)
+        }
+        const enter = ()=>{
+            lrcContainer.value.addEventListener('scroll', scroll)
+        }
+        const leave = ()=>{
+            lrcContainer.value.removeEventListener('scroll', scroll)
+        }
+
         return {
             disc,
             ...toRefs(state),
-            lrcContainer
+            lrcContainer,
+            enter,
+            leave
         }
     }
 })
