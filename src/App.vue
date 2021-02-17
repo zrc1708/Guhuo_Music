@@ -271,18 +271,38 @@ export default defineComponent({
 
     // 下一首点击事件
     const nextMusic = ()=>{
-      if(isPlay.value){
-        playMusic()
+      if(store.state.musicObj&&store.state.playList.length>1){
+        if(isPlay.value){
+          playMusic()
+        }
+        let index = 0
+        for (let i = 0; i < store.state.playList.length; i++) {
+          if(store.state.playList[i].id==store.state.musicObj.id){
+            index = i+1
+            break
+          }
+        }
+        index = index > store.state.playList.length-1? 0 :index
+        store.dispatch('playMusic',store.state.playList[index].id)
       }
-      store.dispatch('playMusic',288838)
     }
 
     // 上一首点击事件
     const backMusic =()=>{
-      if(isPlay.value){
-        playMusic()
+      if(store.state.musicObj&&store.state.playList.length>1){
+        if(isPlay.value){
+          playMusic()
+        }
+        let index = 0
+        for (let i = 0; i < store.state.playList.length; i++) {
+          if(store.state.playList[i].id==store.state.musicObj.id){
+            index = i-1
+            break
+          }
+        }
+        index = index < 0 ? store.state.playList.length-1 :index
+        store.dispatch('playMusic',store.state.playList[index].id)
       }
-      store.dispatch('playMusic',1501212275)
     }
 
     // 播放列表的显示控制

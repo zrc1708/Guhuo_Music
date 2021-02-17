@@ -195,7 +195,7 @@ export default defineComponent({
         }
     }
     td:nth-child(1){
-        width: 20px;
+        width: 30px;
         color: #9f9f9f;
         text-align: center;
         i{

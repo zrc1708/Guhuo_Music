@@ -51,7 +51,7 @@ export default createStore({
     }
   },
   actions: {
-    // 播放音乐（会将歌曲添加进播放列表）
+    // 播放音乐
     async playMusic(context,musicId){
       // 获取歌曲地址
       const res1: any = await request(`/song/url?id=${musicId}`)
