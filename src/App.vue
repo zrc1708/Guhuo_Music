@@ -28,22 +28,28 @@
       </ul>
       <ul class="other-nav">
         <span class="other-nav-title">我的音乐</span>
-        <li class="iconfont icon-B other-active"><span>我的音乐云盘</span></li>
+        <li class="iconfont icon-B"><span>我的音乐云盘</span></li>
         <li class="iconfont icon-diantai"><span>我的电台</span></li>
         <li class="iconfont icon-shoucang"><span>我的收藏</span></li>
       </ul>
       <ul class="other-nav">
         <span class="other-nav-title">创建的歌单</span>
-        <li class="iconfont icon-aixin"><span>我喜欢的音乐</span></li>
-        <li class="iconfont icon-gedan"><span>周杰伦</span></li>
-        <li class="iconfont icon-gedan"><span>许嵩</span></li>
-        <li class="iconfont icon-gedan"><span>老歌</span></li>
+        <!-- <li class="iconfont icon-aixin"><span>我喜欢的音乐</span></li> -->
+        <li class="iconfont icon-gedan" 
+            v-for="item in musicList.userMusicList"
+            :key="item.id"
+            :class="{'other-active':item.id==$route.query.id}"
+            @click="musicListClick(item)"><span>{{item.name}}</span>
+        </li>
       </ul>
       <ul class="other-nav">
         <span class="other-nav-title">收藏的歌单</span>
-        <li class="iconfont icon-gedan"><span>用烂的bgm</span></li>
-        <li class="iconfont icon-gedan"><span>那些竹取飞翔</span></li>
-        <li class="iconfont icon-gedan"><span>辗转攻占网易云的背景音乐背景音乐</span></li>
+        <li class="iconfont icon-gedan" 
+            v-for="item in musicList.otherMusicList"
+            :key="item.id"
+            :class="{'other-active':item.id==$route.query.id}"
+            @click="musicListClick(item)"><span>{{item.name}}</span>
+        </li>
       </ul>
     </aside>
     <div class="content">
@@ -95,13 +101,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch} from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch} from 'vue'
 import request from '../utils/http'
 import Loginbox from './components/Loginbox.vue'
 import PlayMusic from './components/PlayMusic.vue'
 import { useStore } from "vuex";
 import moment from 'moment'
 import PlayList from './components/plsyList.vue'
+import { useRouter, useRoute } from 'vue-router'
 
 export default defineComponent({
   name:'App',
@@ -319,6 +326,36 @@ export default defineComponent({
       history.forward()
     }
 
+    // 获取用户歌单
+    const musicList = reactive({
+      userMusicList:[],
+      otherMusicList:[]
+    })
+    onMounted(async ()=>{
+      const uid = localStorage.getItem('userId')
+      if(!uid) return
+
+      const res: any = await request(`/user/playlist?uid=${uid}`)
+      res.playlist.forEach(item => {
+        if(item.userId==uid){
+          musicList.userMusicList.push(item)
+        }else{
+          musicList.otherMusicList.push(item)
+        }
+      });
+    })
+
+    // 歌单列表点击事件 
+    const router = useRouter()
+    const musicListClick = (item)=>{
+      router.push({
+          path:'/songsheetdetail',
+          query:{
+              id: item.id
+          }
+      })
+    }
+
     return{
       showLogin,
       login,
@@ -339,7 +376,9 @@ export default defineComponent({
       playListClick,
       showPlayList,
       back,
-      forward
+      forward,
+      musicList,
+      musicListClick
     }
   }
 })

@@ -117,19 +117,21 @@ export default defineComponent({
         const {myAudio} = store.state
         const lrcContainer = ref(null)
         let lrcTimer = null
-        let lastMaxIndex = 0
+        let lastMaxIndex = null
         watch(()=>store.state.isPlay,(val)=>{
             if(val&&store.state.musicLrc.lrc){
                 lrcTimer = setInterval(()=>{
-                    let maxIndex = 0
+                    let maxIndex = null
                     for (let i = 0; i < lrcContainer.value.children.length; i++) {
                         if(state.lrcArr[i].second<myAudio.currentTime+0.2){
                             maxIndex = i
                         }
                     }
                     if(maxIndex!==lastMaxIndex){
-                        // 重置歌词颜色
-                        lrcContainer.value.children[lastMaxIndex].style = ''
+                        // 重置上一句歌词颜色
+                        if(lastMaxIndex!==null){
+                            lrcContainer.value.children[lastMaxIndex].style = ''
+                        }
                         // 设置匹配的歌词样式
                         lrcContainer.value.children[maxIndex].style.color = 'black'
                         lrcContainer.value.children[maxIndex].style.fontSize = '16px'

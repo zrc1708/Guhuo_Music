@@ -23,9 +23,12 @@
                 </div>
             </div>
             <div class="tags">
-                标签：<span v-for="(item,index) in state.tags" :key="index">
+                标签：<span v-if="state.tags.length!==0">
+                    <span v-for="(item,index) in state.tags" :key="index" class="onetag">
                         {{item}}<span v-if="index!==state.tags.length-1">/</span>
                     </span>
+                </span>
+                <span v-else>无</span>
             </div>
             <div class="counts">
                 <span>歌曲：<span class="my-text">{{state.musics.length}}</span></span>
@@ -34,7 +37,7 @@
             <div class="desc-container">
                 <div class="desc">
                     <span>简介：</span>
-                    <span :class="[showDesc?'show':'hide']" v-html="state.description"></span>
+                    <span :class="[showDesc?'show':'hide']" v-html="state.description||'无'"></span>
                 </div>
                 <div class="desc-btn" :class="[showDesc?'top-btn':'']" @click="showdesc"></div>
             </div>
@@ -77,7 +80,7 @@
     </table>
 </template>
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue'
+import { defineComponent, reactive, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '../../utils/http'
 import moment from 'moment'
@@ -87,7 +90,6 @@ export default defineComponent({
     name:'songSheetDetail',
     setup(){
         const route = useRoute()
-        const id = route.query.id
 
         const getCount = (count)=>{
             const str = count+''
@@ -118,25 +120,34 @@ export default defineComponent({
         const getSheetMusic =async ()=>{
             const res: any = await request(`/song/detail?ids=${trackIds.join(',')}`)
             state.songsList = res.songs
+            if(!state.songsList) return
             state.songsList.forEach(item =>{
                 item.lastTime = moment(item.dt).format('mm:ss')
             })
         }
-        const getSongSheetDetail =async ()=>{
+        const getSongSheetDetail =async (id)=>{
             const res: any = await request(`/playlist/detail?id=${id}`)
             state.imageSrc = res.playlist.coverImgUrl
             state.name = res.playlist.name
             state.createrImageSrc = res.playlist.creator.avatarUrl
             state.createrName = res.playlist.creator.nickname
             state.createTime = moment(res.playlist.createTime).format('YYYY-DD-MM')
-            state.tags = res.playlist.tags,
+            state.tags = res.playlist.tags
             state.musics = res.playlist.trackIds
             state.playCount = getCount(res.playlist.playCount)
-            state.description = res.playlist.description.replace(/\n/g, '<br>')
+            if(res.playlist.description){
+                state.description = res.playlist.description.replace(/\n/g, '<br>')
+            }
             trackIds = res.playlist.trackIds.map(item=>item.id)
             getSheetMusic()
         }
-        getSongSheetDetail()
+
+        // 获取歌单详情
+        getSongSheetDetail(route.query.id)
+        // 歌单改变时进行切换
+        watch(()=>route.query.id, ()=>{
+            getSongSheetDetail(route.query.id)
+        })
 
         const showDesc = ref(false)
         const showdesc = ()=>{
@@ -191,7 +202,6 @@ export default defineComponent({
     }
     .sheetDetail{
         flex: 1;
-        // overflow: hidden;
         .myicon{
             display: inline-block;
             color: #ec4141;
@@ -283,7 +293,7 @@ export default defineComponent({
             margin-top: 18px;
             font-size: 13px;
             color: rgb(55, 55, 55);
-            span {
+            .onetag {
                 color: #507daf;
                 cursor: pointer;
                 span{

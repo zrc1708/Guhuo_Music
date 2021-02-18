@@ -36,7 +36,7 @@ export default defineComponent({
 <style lang="less" scoped>
 .overflow{
     width: 100%;
-    height: calc(100% - 70px);
+    height: calc(100% - 60px);
     overflow-y: auto;
     padding: 0 30px;
 

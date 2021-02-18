@@ -3,6 +3,17 @@ import axios from 'axios'
 // 配合反向代理
 axios.defaults.baseURL = '/api'
 
+// 添加响应拦截器
+axios.interceptors.response.use( response => {  
+    return response;
+}, error => {  
+    if(error.response.status==404&&error.response.config.url.indexOf('/check/music?id=')==0){
+        return error.response
+    }
+    return Promise.reject(error);
+});
+
+
 type Method = 'get' | 'post' | 'put' | 'delete'
 
 const request = (url, data={}, method: Method ="get")=>{
@@ -14,7 +25,7 @@ const request = (url, data={}, method: Method ="get")=>{
         }).then(res=>{
             resolve(res.data)
         }).catch(err=>{
-            console.log(err);
+            console.log('err'+err);
         })
     })
 }

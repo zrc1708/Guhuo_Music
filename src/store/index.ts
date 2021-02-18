@@ -2,6 +2,7 @@ import { createStore } from 'vuex'
 import request from '../../utils/http'
 import moment from 'moment'
 
+
 const playListSet = new Set()
 
 export default createStore({
@@ -53,6 +54,11 @@ export default createStore({
   actions: {
     // 播放音乐
     async playMusic(context,musicId){
+      // 先检查歌曲是否有版权
+      const canPlay: any = await request(`/check/music?id=${musicId}`)
+      if(!canPlay.success){
+        return alert('亲爱的,暂无版权')
+      }
       // 获取歌曲地址
       const res1: any = await request(`/song/url?id=${musicId}`)
       // 获取歌词
