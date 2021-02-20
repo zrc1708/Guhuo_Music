@@ -22,7 +22,7 @@
   <div class="content-box">
     <aside class="asidenav">
       <ul class="main-nav">
-        <li class="main-active">发现音乐</li>
+        <li class="main-active" @click="goto('/')">发现音乐</li>
         <li>视频</li>
         <li>私人FM</li>
       </ul>
@@ -356,6 +356,11 @@ export default defineComponent({
       })
     }
 
+    // 发现音乐点击事件
+    const goto = (path)=>{
+      router.push(path)
+    }
+
     return{
       showLogin,
       login,
@@ -378,7 +383,8 @@ export default defineComponent({
       back,
       forward,
       musicList,
-      musicListClick
+      musicListClick,
+      goto
     }
   }
 })

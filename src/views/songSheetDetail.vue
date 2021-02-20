@@ -145,8 +145,8 @@ export default defineComponent({
         // 获取歌单详情
         getSongSheetDetail(route.query.id)
         // 歌单改变时进行切换
-        watch(()=>route.query.id, ()=>{
-            getSongSheetDetail(route.query.id)
+        watch(()=>route.query.id, val =>{
+            val && getSongSheetDetail(route.query.id)
         })
 
         const showDesc = ref(false)

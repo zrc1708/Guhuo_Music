@@ -141,8 +141,6 @@ export default defineComponent({
     background: linear-gradient(to bottom,rgba(0, 0, 0, 0.2),transparent);;
     top: 0;
     right: 0;
-    // margin-top: 4px;
-    // margin-right: 10px;
     width: 100%;
     font-size: 12px;
     text-align: right;
