@@ -10,7 +10,8 @@
       <span class="icon-box left iconfont icon-left" @click="back"></span>
       <span class="icon-box right iconfont icon-right" @click="forward"></span>
       <div class="search-box iconfont icon-sousuo">
-        <input type="text" placeholder="搜索">
+        <input type="text" placeholder="搜索" v-model="searchText">
+        <SearchBox class="my-searchbox" :text="searchText"></SearchBox>
       </div>
     </div>
     <div class="header-user">
@@ -34,7 +35,6 @@
       </ul>
       <ul class="other-nav">
         <span class="other-nav-title">创建的歌单</span>
-        <!-- <li class="iconfont icon-aixin"><span>我喜欢的音乐</span></li> -->
         <li class="iconfont icon-gedan" 
             v-for="item in musicList.userMusicList"
             :key="item.id"
@@ -109,11 +109,12 @@ import { useStore } from "vuex";
 import moment from 'moment'
 import PlayList from './components/plsyList.vue'
 import { useRouter, useRoute } from 'vue-router'
+import SearchBox from './components/SearchBox.vue'
 
 export default defineComponent({
   name:'App',
   components:{
-    Loginbox,PlayMusic,PlayList
+    Loginbox,PlayMusic,PlayList,SearchBox
   },
   setup(){
     const showLogin = ref(false)
@@ -361,6 +362,9 @@ export default defineComponent({
       router.push(path)
     }
 
+    // 搜索
+    const searchText = ref('')
+
     return{
       showLogin,
       login,
@@ -384,7 +388,8 @@ export default defineComponent({
       forward,
       musicList,
       musicListClick,
-      goto
+      goto,
+      searchText
     }
   }
 })
@@ -449,6 +454,7 @@ export default defineComponent({
       background-color: #d93b3b;
       border: 0;
       border-radius: 20px;
+      position: relative;
       input{
         height: 32px;
         background-color: transparent;
@@ -466,6 +472,12 @@ export default defineComponent({
         &::-ms-input-placeholder {
           color: #e66060;
         }
+      }
+      .my-searchbox{
+        position: absolute;
+        top: 100%;
+        left: -40px;
+        z-index: 99999;
       }
     }
   }

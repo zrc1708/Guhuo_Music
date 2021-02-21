@@ -69,7 +69,7 @@
                     <span v-else>{{index+1>=10 ?index+1:'0'+(index+1)}}</span>
                 </td>
                 <td>
-                    <span class="name-container">{{item.name}}</span>
+                    <span class="name-container" :class="{'active':$store.state.musicObj&&item.id==$store.state.musicObj.id}">{{item.name}}</span>
                     <span class="sidename-container">{{item.alia[0]&&'('+item.alia[0]+')'}}</span>
                 </td>
                 <td><span class="text-container">{{item.ar.map(item=>item.name).join('/')}}</span></td>
@@ -484,6 +484,9 @@ export default defineComponent({
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .active{
+            color: rgb(215, 53, 53);
         }
     }
     td:nth-child(3){

@@ -21,11 +21,15 @@
             <i class="iconfont icon-right"></i>
         </div>
         <div class="tags-container">
-            <span v-for="item in hotTags" :key="item.id" @click="tagClick(item.name)">{{item.name}}</span>
+            <span class="tag-default" 
+                  :class="{'btn-active':btnText==item.name}"
+                  v-for="item in hotTags" 
+                  :key="item.id" 
+                  @click="tagClick(item.name)">{{item.name}}</span>
         </div>
         <div class="alltags-box" v-show="allTagBoxShow">
             <div class="lineone">
-                <div class="allcats-btn" @click="tagClick('全部歌单')">全部歌单</div>
+                <div class="allcats-btn" :class="{'btn-active':btnText=='全部歌单'}" @click="tagClick('全部歌单')" >全部歌单</div>
             </div>
             <div class="linetwo">
                 <div class="categories" v-for="(category,index) in allTags" :key="index" >
@@ -38,7 +42,10 @@
                     <div class="tags-box">
                         <span v-for="item in category.children" 
                               :key="item"
-                              @click="tagClick(item.name)">{{item.name}}</span>
+                              class="onetag-box"
+                              @click="tagClick(item.name)">
+                              <span class="tag-default" :class="{'btn-active':btnText==item.name}">{{item.name}}</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -54,15 +61,17 @@
                      :item="item">
         </SongListBox>
     </div>
+    <Paging v-show="!isLoading" :pageIndex="pageIndex" @pagingChange="pagingChange"></Paging>
 </template>
 <script lang="ts">
 import { defineComponent, reactive, ref, toRefs } from 'vue'
 import request from '../../utils/http'
 import SongListBox from '../components/SongListBox.vue'
+import Paging from '../components/Paging.vue'
 
 export default defineComponent({
     name:'songlist',
-    components:{ SongListBox },
+    components:{ SongListBox, Paging },
     setup(){
         const state = reactive({
             quality:{},
@@ -73,6 +82,7 @@ export default defineComponent({
         const allTagBoxShow = ref(false)
         const btnText = ref('全部歌单')
         const isLoading = ref(true)
+        const pageIndex = ref(1)
         const tagnameToClass = reactive({
             语种:'icon-diqiu',
             风格:'icon-gangqin',
@@ -88,8 +98,8 @@ export default defineComponent({
         }
 
         // 根据分类获取歌单
-        const getSongList = async(cat)=>{
-            const res: any = await request(`/top/playlist?limit=100&cat=${cat}`)
+        const getSongList = async(cat,offset=0)=>{
+            const res: any = await request(`/top/playlist?limit=100&cat=${cat}&offset=${offset}`)
             state.songListsArr = res.playlists
             isLoading.value = false
         }
@@ -142,8 +152,19 @@ export default defineComponent({
 
         const tagClick = (tagName)=>{
             allTagBoxShow.value = false
+            pageIndex.value = 1
             getSongListData(tagName)
             btnText.value = tagName
+        }
+
+        // 分页逻辑
+        const pagingChange = (index)=>{
+            isLoading.value = true
+            const dom = document.querySelector('.overflow')
+            dom.scrollTop = 0
+            const offset = (index-1)*100
+            getSongList(btnText.value, offset)
+            pageIndex.value = index
         }
 
         return {
@@ -153,7 +174,9 @@ export default defineComponent({
             tagClick,
             allTagBoxShow,
             btnText,
-            isLoading
+            isLoading,
+            pageIndex,
+            pagingChange
         }
     }
 })
@@ -257,7 +280,6 @@ export default defineComponent({
         span{
             font-size: 12px;
             color: #676767;
-            margin: 0 9px;
             cursor: default;
             &:hover{
                 color: #373737;
@@ -282,11 +304,10 @@ export default defineComponent({
             align-items: center;
             .allcats-btn{
                 margin-left: 20px;
+                color: #373737;
                 width: 82px;
                 height: 30px;
-                background-color: #fdf5f5;
                 border-radius: 30px;
-                color: #ec4141;
                 text-align: center;
                 line-height: 30px;
                 font-size: 14px;
@@ -317,7 +338,7 @@ export default defineComponent({
                     flex: 1;
                     display: flex;
                     flex-wrap: wrap;
-                    span{
+                    .onetag-box{
                         color: #373737;
                         width: 100px;
                         font-size: 14px;
@@ -331,6 +352,14 @@ export default defineComponent({
             }
         }
     }
+}
+.btn-active{
+    color: #ec4141!important;
+    background-color: #fdf5f5!important;
+}
+.tag-default{
+    padding: 5px 10px;
+    border-radius: 28px;
 }
 @keyframes rotate{
     0%{

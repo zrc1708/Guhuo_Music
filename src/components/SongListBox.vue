@@ -11,7 +11,7 @@
             <div class="author">
                 <span class="flex-box">
                     <i class="iconfont icon-yonghu"></i>
-                    {{item.creator.nickname}}
+                    <span>{{item.creator.nickname}}</span>
                 </span>
             </div>
             <div class="icon-box">
@@ -110,9 +110,15 @@ export default defineComponent({
                 align-items: center;
                 margin-bottom: 8px;
                 margin-left: 8px;
+                width: 90%;
                 i{
                     font-size: 12px;
                     margin-right: 2px;
+                }
+                span{
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
             }
         }

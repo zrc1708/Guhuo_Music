@@ -37,7 +37,7 @@ export default defineComponent({
 .overflow{
     width: 100%;
     height: calc(100% - 60px);
-    overflow-y: auto;
+    overflow-y: scroll;
     padding: 0 30px;
 
     &::-webkit-scrollbar {
