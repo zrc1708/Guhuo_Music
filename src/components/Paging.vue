@@ -5,7 +5,7 @@
              :class="{'no':pageIndex==1}"
              @click="pagingItemClick(pageIndex-1)"></div>
         <div class="paging-item" 
-             v-for="i in 10" 
+             v-for="i in counts" 
              :key="i" 
              :class="{'paging-active':pageIndex==i}"
              @click="pagingItemClick(i)">{{i}}</div>
@@ -19,10 +19,15 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
     name:'Paging',
-    props:['pageIndex'],
+    props:{
+        pageIndex:{},
+        counts:{
+            default:10
+        }
+    },
     setup(props, context){
         const pagingItemClick = (val)=>{
-            if(val==0||val==11) return
+            if(val==0||val==props.counts+1) return
             context.emit('pagingChange',val)
         }
 

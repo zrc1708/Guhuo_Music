@@ -1,8 +1,8 @@
 <template>
-    <div class="searchbox-container">
+    <div class="searchbox-container" ref="searchBox">
         <div class="hotbox" v-show="text==''||searchLists.length==0">
             <div class="hottitle">热搜榜</div>
-            <div class="hotitem" v-for="(item, index) in hotLists" :key="index">
+            <div class="hotitem" @click="hotClick(item)" v-for="(item, index) in hotLists" :key="index">
                 <div class="index">{{index+1}}</div>
                 <div class="item">
                     <div class="title">
@@ -19,25 +19,31 @@
                 <i class="iconfont icon-yinfu"></i>
                 单曲
             </div>
-            <div class="search-item" v-for="(item,index) in searchLists" :key="index">
-                <span class="name">{{item.name}}</span>
-                <span class="author">{{'-'+item.artists[0].name}}</span>
+            <div class="search-item" 
+                 v-for="(item,index) in searchLists" 
+                 :key="index"
+                 @click="searchItemClick(item.id)">
+                <span v-html="item.html"></span>
             </div>
         </div>
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, reactive, toRefs, watch } from 'vue'
+import { defineComponent, reactive, toRefs, watch, onMounted, ref } from 'vue'
 import request from '../../utils/http'
+import { useStore } from 'vuex'
+import useClickOutside from '../../utils/clickOutSide'
 
 export default defineComponent({
     name:'SearchBox',
     props:['text'],
-    setup(props){
+    emits:['close'],
+    setup(props,context){
         const state = reactive({
             hotLists:[],
             searchLists:[]
         })
+        const store = useStore()
 
         const getHot = async()=>{
             const res: any = await request(`/search/hot/detail`)
@@ -48,8 +54,12 @@ export default defineComponent({
         const searchSuggest = async(val)=>{
             if(!val) return
             const res: any = await request(`/search/suggest?keywords=${val}`)
-            console.log(res.result.songs)
-            state.searchLists = res.result.songs
+            res.result.songs&&res.result.songs.forEach(item => {
+                const data = item.name+'-'+item.artists[0].name
+                const str = `<span style="color: #767dc0;">${props.text}</span>`
+                item.html= data.replace(props.text, str)
+            });
+            state.searchLists = res.result.songs||[]
         }
 
         let timer = null
@@ -60,8 +70,39 @@ export default defineComponent({
             },500)
         })
 
+        // 搜索结果点击事件
+        const searchItemClick = (id)=>{
+            store.dispatch('playMusic',id)
+        }
+
+        // 设置点击组件外触发关闭
+        const searchBox = ref(null)
+        const isClickOutside = useClickOutside(searchBox)
+        let flag = true
+        onMounted(()=>{
+            watch(isClickOutside, () => {
+                if(isClickOutside.value==true){
+                    // 组件第一次被触发显示时，会被判定点击在外
+                    if(flag){
+                        flag = !flag
+                        isClickOutside.value = false
+                    }else{
+                        context.emit('close')
+                    }
+                }
+            })
+        })
+
+        // 热搜点击事件
+        const hotClick = (item)=>{
+            console.log(item)
+        }
+
         return {
-            ...toRefs(state)
+            ...toRefs(state),
+            searchItemClick,
+            searchBox,
+            hotClick
         }
     }
 })
@@ -145,14 +186,9 @@ export default defineComponent({
         height: 28px;
         line-height: 28px;
         cursor: pointer;
+        color: #373737;
         &:hover{
             background-color: #f2f2f2;
-        }
-        .name{
-            color: #767dc0;
-        }
-        .author{
-            color: #373737;
         }
     }
 }

@@ -88,7 +88,6 @@ export default defineComponent({
     padding-left: 6px;
     input{
         font-size: 13px;
-        height: 100%;
         background-color: transparent;
         border: 0;
         color: black;

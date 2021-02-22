@@ -5,6 +5,7 @@ import recommendMusic from '../views/recommendMusic.vue'
 import songlist from '../views/songlist.vue'
 import songSheetDetail from '../views/songSheetDetail.vue'
 import dailyRecommend from '../views/dailyRecommend.vue'
+import searchMusic from '../views/searchMusic.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -27,6 +28,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/dailyRecommend',
     component:dailyRecommend,
+  },
+  {
+    path: '/searchmusic',
+    component:searchMusic,
   }
 ]
 

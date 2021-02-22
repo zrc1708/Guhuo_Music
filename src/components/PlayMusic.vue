@@ -35,7 +35,7 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, computed, reactive, ref, toRefs, watch } from 'vue'
+import { defineComponent, computed, reactive, ref, toRefs, watch } from 'vue'
 import { useStore } from "vuex";
 
 export default defineComponent({
@@ -129,15 +129,17 @@ export default defineComponent({
                     }
                     if(maxIndex!==lastMaxIndex){
                         // 重置上一句歌词颜色
-                        if(lastMaxIndex!==null){
+                        if(lastMaxIndex!==null&&lrcContainer.value.children[lastMaxIndex]){
                             lrcContainer.value.children[lastMaxIndex].style = ''
                         }
                         // 设置匹配的歌词样式
-                        lrcContainer.value.children[maxIndex].style.color = 'black'
-                        lrcContainer.value.children[maxIndex].style.fontSize = '16px'
-                        lrcContainer.value.children[maxIndex].style.fontWeight = 'bold'
-                        if(animateFlag){
-                            animate(lrcContainer.value,lrcContainer.value.children[maxIndex].offsetTop-121)
+                        if(lrcContainer.value.children[maxIndex]){
+                            lrcContainer.value.children[maxIndex].style.color = 'black'
+                            lrcContainer.value.children[maxIndex].style.fontSize = '16px'
+                            lrcContainer.value.children[maxIndex].style.fontWeight = 'bold'
+                            if(animateFlag){
+                                animate(lrcContainer.value,lrcContainer.value.children[maxIndex].offsetTop-121)
+                            }
                         }
                         lastMaxIndex = maxIndex
                     }

@@ -1,7 +1,7 @@
 <template>
     <swiper :imageList="bannerList" :autoplay="true"></swiper>
     <SmallTitle title="推荐歌单"></SmallTitle>
-    <div class="songList-box">
+    <div class="songList-box" v-if="username">
         <Mediabox class="mediabox" :isRecommend="true" text="每日歌曲推荐"></Mediabox>
         <Mediabox   class="mediabox"
                     v-for="item in songList" 
@@ -10,6 +10,9 @@
                     :text="item.name"
                     :playcount="item.playcount"
                     :id="item.id"></Mediabox>
+    </div>
+    <div class="songList-box" v-else>
+        <span class="no-login">登录后获取推荐数据</span>
     </div>
     <SmallTitle title="最新音乐"></SmallTitle>
     <div class="newMusic-box">
@@ -20,7 +23,7 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, reactive, toRefs } from 'vue'
+import { defineComponent, onMounted, reactive, ref, toRefs } from 'vue'
 
 import Swiper from '../components/Swiper.vue'
 import SmallTitle from '../components/SmallTitle.vue'
@@ -34,8 +37,7 @@ export default defineComponent({
         Swiper,SmallTitle,Mediabox,NewMusicbox
     },
     setup(){
-        // const {appContext}: any = getCurrentInstance()
-        // const $http = appContext.config.globalProperties.$http
+        const username = ref(localStorage.getItem('username'))
 
         const state = reactive({
             bannerList:[],
@@ -51,6 +53,7 @@ export default defineComponent({
         
         // 获取推荐歌单
         const getRecommendResource = async ()=>{
+            if(!username.value) return
             const res: any = await request('/recommend/resource')
             res.recommend.splice(8,res.recommend.length-9)
             state.songList = res.recommend
@@ -69,7 +72,8 @@ export default defineComponent({
         })
 
         return {
-            ...toRefs(state)
+            ...toRefs(state),
+            username
         }
     }
 })
@@ -82,6 +86,9 @@ export default defineComponent({
 }
 .mediabox{
     width: calc(20% - 16px);
+}
+.no-login{
+    color: #9f9f9f;
 }
 .newMusic-box{
     display: flex;

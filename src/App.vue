@@ -10,13 +10,14 @@
       <span class="icon-box left iconfont icon-left" @click="back"></span>
       <span class="icon-box right iconfont icon-right" @click="forward"></span>
       <div class="search-box iconfont icon-sousuo">
-        <input type="text" placeholder="搜索" v-model="searchText">
-        <SearchBox class="my-searchbox" :text="searchText"></SearchBox>
+        <input type="text" placeholder="搜索" @click="searchInputClick" @keydown.enter="enter" v-model="searchText">
+        <SearchBox v-if="showSearchBox" class="my-searchbox" @close="searchBoxClose" :text="searchText"></SearchBox>
       </div>
     </div>
     <div class="header-user">
       <img :src="avatarUrl||$store.state.userAccount.avatarUrl||require('./assets/logo.jpg')" alt="">
       <span class="username" @click="login">{{username||$store.state.userAccount.nickname||"未登录"}}</span>
+      <span class="log-btn" v-if="username" @click="logout">登出</span>
     </div>
   </header>
   <!-- 内容 -->
@@ -101,14 +102,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, reactive, ref, watch} from 'vue'
+import { defineComponent, onMounted, reactive, ref, watch} from 'vue'
 import request from '../utils/http'
 import Loginbox from './components/Loginbox.vue'
 import PlayMusic from './components/PlayMusic.vue'
 import { useStore } from "vuex";
 import moment from 'moment'
 import PlayList from './components/plsyList.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import SearchBox from './components/SearchBox.vue'
 
 export default defineComponent({
@@ -144,16 +145,28 @@ export default defineComponent({
 
     // 登录
     const loginClick = async (user)=>{
-      const res: any = await request('/login/cellphone',user,'post')
-      if(res.profile.userId){
-        console.log(res.profile);
+      if(!user.password) return
+      const res: any = await request(`/login/cellphone`,user,'post')
+      console.log(res)
+      if(res.profile){
         // 存储基本信息
         localStorage.setItem('phone',user.phone)
         localStorage.setItem('username',res.profile.nickname)
         localStorage.setItem('avatarUrl',res.profile.avatarUrl)
         localStorage.setItem('userId',res.profile.userId)
         showLogin.value = false
+        location.reload()
+      }else{
+        alert('登录失败')
       }
+    }
+    // 登出
+    const logout = async()=>{
+      localStorage.removeItem('username')
+      localStorage.removeItem('avatarUrl')
+      localStorage.removeItem('userId')
+      await request(`/logout`)
+      location.reload()
     }
 
     // 设置音乐结束时间（vip音乐设置试听结束时间）
@@ -188,6 +201,7 @@ export default defineComponent({
     // 播放核心逻辑
     let time = null
     const playMusic = (playTime?)=>{
+      clearInterval(time)
       if(!store.state.musicUrl) return
       // 若为定点播放，先设置时间，调整进度条位置
       if( playTime ){
@@ -207,17 +221,29 @@ export default defineComponent({
         // 时间变化
         time = setInterval(()=>{
           if(myAudio.value.ended) {
+            // 播放结束
             clearInterval(time)
             pointMove(false)
             store.commit('setIsPlay',false)
             isPlay.value = false
             myProgress.value.style.width = '392px'
-            currentTime.value = store.state.musicObj.lastTime
+            currentTime.value = endTime.value
+            // 播放下一首
+            let index = 0
+            for (let i = 0; i < store.state.playList.length; i++) {
+              if(store.state.playList[i].id==store.state.musicObj.id){
+                index = i+1
+                break
+              }
+            }
+            index = index > store.state.playList.length-1? 0 :index
+            index&&store.dispatch('playMusic',store.state.playList[index].id)
             return
           }
           currentTime.value = moment(myAudio.value.currentTime*1000).format('mm:ss')
         },500)
       }else{
+        // 触发暂停
         store.commit('setIsPlay',false)
         isPlay.value = false
         myAudio.value.pause()
@@ -362,14 +388,32 @@ export default defineComponent({
       router.push(path)
     }
 
-    // 搜索
+    // 搜索相关逻辑
     const searchText = ref('')
+    const showSearchBox = ref(false)
+    const searchInputClick = ()=>{
+      showSearchBox.value = true
+    }
+    const searchBoxClose =()=>{
+      showSearchBox.value = false
+    }
+    const enter = async()=>{
+      showSearchBox.value = false
+      router.push({
+        path:'/searchmusic',
+          query:{
+              searchtext: searchText.value
+          }
+      })
+      searchText.value = ''
+    }
 
     return{
       showLogin,
       login,
       close,
       loginClick,
+      logout,
       username,
       avatarUrl,
       showPlayMusic,
@@ -389,7 +433,11 @@ export default defineComponent({
       musicList,
       musicListClick,
       goto,
-      searchText
+      searchText,
+      showSearchBox,
+      searchInputClick,
+      searchBoxClose,
+      enter
     }
   }
 })
@@ -491,6 +539,11 @@ export default defineComponent({
       margin-right: 5px;
     }
     .username{
+      color: #f9c6c6;
+      margin-right: 20px;
+      cursor: pointer;
+    }
+    .log-btn{
       color: #f9c6c6;
       margin-right: 20px;
       cursor: pointer;
