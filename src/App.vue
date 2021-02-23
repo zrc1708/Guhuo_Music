@@ -11,7 +11,7 @@
       <span class="icon-box right iconfont icon-right" @click="forward"></span>
       <div class="search-box iconfont icon-sousuo">
         <input type="text" placeholder="搜索" @click="searchInputClick" @keydown.enter="enter" v-model="searchText">
-        <SearchBox v-if="showSearchBox" class="my-searchbox" @close="searchBoxClose" :text="searchText"></SearchBox>
+        <SearchBox v-if="showSearchBox" class="my-searchbox" @hotClick="hotClick" @close="searchBoxClose" :text="searchText"></SearchBox>
       </div>
     </div>
     <div class="header-user">
@@ -147,7 +147,6 @@ export default defineComponent({
     const loginClick = async (user)=>{
       if(!user.password) return
       const res: any = await request(`/login/cellphone`,user,'post')
-      console.log(res)
       if(res.profile){
         // 存储基本信息
         localStorage.setItem('phone',user.phone)
@@ -407,6 +406,15 @@ export default defineComponent({
       })
       searchText.value = ''
     }
+    const hotClick = (name)=>{
+      showSearchBox.value = false
+      router.push({
+        path:'/searchmusic',
+          query:{
+              searchtext: name
+          }
+      })
+    }
 
     return{
       showLogin,
@@ -437,7 +445,8 @@ export default defineComponent({
       showSearchBox,
       searchInputClick,
       searchBoxClose,
-      enter
+      enter,
+      hotClick
     }
   }
 })

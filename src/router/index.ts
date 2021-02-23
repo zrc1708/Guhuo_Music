@@ -2,10 +2,15 @@ import { createRouter, createWebHashHistory,createWebHistory, RouteRecordRaw } f
 
 import explorMusic from '../views/explorMusic.vue'
 import recommendMusic from '../views/recommendMusic.vue'
-import songlist from '../views/songlist.vue'
-import songSheetDetail from '../views/songSheetDetail.vue'
-import dailyRecommend from '../views/dailyRecommend.vue'
-import searchMusic from '../views/searchMusic.vue'
+// import songlist from '../views/songlist.vue'
+// import songSheetDetail from '../views/songSheetDetail.vue'
+// import dailyRecommend from '../views/dailyRecommend.vue'
+// import searchMusic from '../views/searchMusic.vue'
+
+const songlist = () => import(/* webpackChunkName: "group-one" */ '../views/songlist.vue')
+const dailyRecommend = () => import(/* webpackChunkName: "group-two" */ '../views/dailyRecommend.vue')
+const searchMusic = () => import(/* webpackChunkName: "group-two" */ '../views/searchMusic.vue')
+const songSheetDetail = () => import(/* webpackChunkName: "group-two" */ '../views/songSheetDetail.vue')
 
 const routes: Array<RouteRecordRaw> = [
   {

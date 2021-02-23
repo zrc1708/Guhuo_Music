@@ -64,10 +64,11 @@
     <Paging v-show="!isLoading" :pageIndex="pageIndex" @pagingChange="pagingChange"></Paging>
 </template>
 <script lang="ts">
-import { defineComponent, reactive, ref, toRefs } from 'vue'
+import { defineComponent, reactive, ref, toRefs, watch } from 'vue'
 import request from '../../utils/http'
 import SongListBox from '../components/SongListBox.vue'
 import Paging from '../components/Paging.vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export default defineComponent({
     name:'songlist',
@@ -79,6 +80,8 @@ export default defineComponent({
             allTags:[],
             songListsArr:[]
         })
+        const route = useRoute()
+        const router = useRouter()
         const allTagBoxShow = ref(false)
         const btnText = ref('全部歌单')
         const isLoading = ref(true)
@@ -136,10 +139,13 @@ export default defineComponent({
         }
 
         // 获取歌单
-        const getSongListData = async (cat= '全部')=>{
+        const getSongListData = async ()=>{
+            const cat = route.query.cat || '全部'
+            const page = route.query.page || 1
+            const offset = (Number(page)-1)*100
             isLoading.value = true
             getQualitySongList(cat)
-            getSongList(cat)
+            getSongList(cat,offset)
         }
 
         getTags()
@@ -153,18 +159,34 @@ export default defineComponent({
         const tagClick = (tagName)=>{
             allTagBoxShow.value = false
             pageIndex.value = 1
-            getSongListData(tagName)
             btnText.value = tagName
+            router.push({
+                path:'/explormusic/songlist',
+                query:{
+                    cat: tagName
+                }
+            })
         }
+
+        watch(()=>route.query,()=>{
+            getSongListData()
+        },{
+            deep:true
+        })
 
         // 分页逻辑
         const pagingChange = (index)=>{
             isLoading.value = true
             const dom = document.querySelector('.overflow')
             dom.scrollTop = 0
-            const offset = (index-1)*100
-            getSongList(btnText.value, offset)
             pageIndex.value = index
+            router.push({
+                path:'/explormusic/songlist',
+                query:{
+                    cat: btnText.value,
+                    page:index
+                }
+            })
         }
 
         return {

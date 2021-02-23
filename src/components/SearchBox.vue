@@ -37,7 +37,7 @@ import useClickOutside from '../../utils/clickOutSide'
 export default defineComponent({
     name:'SearchBox',
     props:['text'],
-    emits:['close'],
+    emits:['close','hotClick'],
     setup(props,context){
         const state = reactive({
             hotLists:[],
@@ -95,7 +95,7 @@ export default defineComponent({
 
         // 热搜点击事件
         const hotClick = (item)=>{
-            console.log(item)
+            context.emit('hotClick',item.searchWord)
         }
 
         return {

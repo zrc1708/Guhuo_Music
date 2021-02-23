@@ -69,7 +69,6 @@ export default defineComponent({
             const searchText = route.query.searchtext
             const offset = (pageIndex.value-1)*100
             const res: any = await request(`/cloudsearch?keywords=${searchText}&offset=${offset}&limit=100`)
-            console.log(res)
             state.searchLists = res.result.songs
             state.searchLists.forEach(item =>{
                 item.lastTime = moment(item.dt).format('mm:ss')
