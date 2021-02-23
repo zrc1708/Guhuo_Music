@@ -1,5 +1,4 @@
 import axios from 'axios'
-// axios.defaults.baseURL = 'http://www.jibei66.com:3000'
 // 配合反向代理
 axios.defaults.baseURL = '/api'
 
